@@ -1,0 +1,14 @@
+{
+    "name": "rlanvin/php-tools",
+    "type": "library",
+    "description": "Collection of single class tools for PHP projects",
+    "keywords": [],
+    "homepage": "https://github.com/rlanvin/php-tools",
+    "license": "MIT",
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "classmap": ["src/"]
+    }
+}
