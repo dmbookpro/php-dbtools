@@ -58,6 +58,11 @@ class PagerTest extends PHPUnit_Framework_TestCase
 		$pager->setTotal(21);
 		$this->assertEquals(2, $pager->getCurrentPage());
 		$this->assertEquals(2, $pager->getNbPages(), 'There are two pages');
+
+		$pager->setTotal(0);
+		$this->assertEquals(1, $pager->getCurrentPage(), 'current page is capped by the total');
+		$this->assertEquals(0, $pager->getTotal());
+		$this->assertEquals(1, $pager->getNbPages(), 'There is always one page');
 	}
 
 	public function testNegativeCurrentPage()

@@ -119,7 +119,10 @@ class Pager
 	public function setTotal($total)
 	{
 		if ( ! is_numeric($total) || (int) $total < 0 ) {
-			throw new \InvalidArgumentException('Invalid total');
+			throw new \InvalidArgumentException(sprintf(
+				'Invalid total (%s)',
+				$total
+			));
 		}
 
 		$this->nb_pages = 0;
@@ -147,19 +150,18 @@ class Pager
 	{
 		$total = 0;
 
-		if ( $dbh_or_statement instanceof \PDOStatement ) {
-			$dbh_or_statement->execute();
-			$total = $dbh_or_statement->fetch(PDO::FETCH_COLUMN);
+		if ( $sql !== null ) {
+			$total = (int) $dbh_or_statement->query($sql)->fetch(PDO::FETCH_COLUMN);
 		}
-		elseif ( $dbh_or_statement instanceof \PDO ) {
-			if ( ! $sql ) {
-				throw new \InvalidArgumentException('SQL query is missing');
-			}
-
-			$total = $dbh_or_statement->query($sql)->fetch(PDO::FETCH_COLUMN);
+		elseif ( ($dbh_or_statement instanceof \PDOStatement) || is_callable([$dbh_or_statement, 'execute']) ) {
+			$dbh_or_statement->execute();
+			$total = (int) $dbh_or_statement->fetch(PDO::FETCH_COLUMN);
 		}
 		else {
-			throw new \InvalidArgumentException('Invalid parameter supplied (must be PDOStatement or PDO + a query)');
+			throw new \InvalidArgumentException(sprintf(
+				'Invalid parameters, must be PDOStatement or PDO + query, %s given',
+				get_class($dbh_or_statement)
+			));
 		}
 
 		return $this->setTotal($total);
