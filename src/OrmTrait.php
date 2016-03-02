@@ -89,12 +89,12 @@ trait OrmTrait
 	 */
 	static public function getList(array $opt = array())
 	{
-		$opt = array_merge([
+		$opt = self::mergeOptions(array_merge([
 			'pager' => null,
 			'order_by' => 'id',
 			'select' => 't.id, t.*',
 			'fetch_mode' => PDO::FETCH_UNIQUE
-		], static::getQueryOptions(), $opt);
+		], static::getQueryOptions()), $opt);
 
 		$dbh = Database::get();
 
@@ -166,7 +166,7 @@ trait OrmTrait
 
 	static public function getBy(array $opt = array())
 	{
-		$opt = array_merge(static::getQueryOptions(), $opt);
+		$opt = self::mergeOptions(static::getQueryOptions(), $opt);
 
 		$dbh = Database::get();
 
@@ -181,7 +181,7 @@ trait OrmTrait
 		$where = implode(' AND ',$where);
 
 		if ( ! $where ) {
-			throw new \InvalidArgumentException('The Where clause cannot be empty, you must specify how to get the item for getBy to work.');
+			throw new \LogicException('The WHERE clause cannot be empty, you must specify how to get the item for getBy to work (hint: implement computeQueryParts())');
 		}
 
 		$sql = sprintf(
@@ -319,4 +319,13 @@ trait OrmTrait
 		}
 	}
 
+	static public function mergeOptions(array $array1, array $array2)
+	{
+		$diff = array_diff_key($array2, $array1);
+		if ( ! empty($diff) ) {
+			throw new \InvalidArgumentException('Unsupported query options: '. implode(', ',array_keys($diff)));
+		}
+
+		return array_merge($array1, $array2);
+	}
 }

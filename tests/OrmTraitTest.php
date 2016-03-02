@@ -9,6 +9,7 @@ class TableModel
 	static protected function getQueryOptions()
 	{
 		return [
+			'id' => null,
 			'replace_list_completely' => false,
 			'inject_list' => false,
 			'inject_getby' => false,
