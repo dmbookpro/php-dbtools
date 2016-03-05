@@ -10,26 +10,26 @@
  */
 
 /**
- * This trait regroups helper functions for Model classes to work with a Table
+ * This class regroups helper functions for Model classes to work with a Table
  * (typically MySQL, although in theory it should work for everything).
  *
- * The class should implement at least:
+ * The child class should implement at least:
  *  - getQueryOptions()
  *  - computeQueryParts()
  *  - getTableName() (or add a static variable $table_name)
  *
- * This trait will provide:
+ * This class will provide:
  *  - getList()
  *  - getListForSelect() (default helper, can be overriden)
  *  - getBy()
  *  - getById() (default helper, can be overriden)
  */
-trait OrmTrait
+class TableModel extends Model
 {
 	/**
 	 * @var (string) the name of the table.
 	 */
-	// static protected $table_name = '';
+	static protected $table_name = '';
 
 	/**
 	 * Default getter for the table name. Can be updated in the child class.
@@ -37,7 +37,7 @@ trait OrmTrait
 	 */
 	static protected function getTableName()
 	{
-		if ( ! isset(static::$table_name) || ! static::$table_name ) {
+		if ( ! static::$table_name ) {
 			throw new \LogicException(sprintf(
 				'You forgot to implement %s::getTableName() or to set %1$s::$table_name',
 				get_class()

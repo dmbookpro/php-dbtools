@@ -1,9 +1,7 @@
 <?php
 
-class TableModel
+class ConcreteTableModel extends TableModel
 {
-	use OrmTrait;
-
 	static protected $table_name = 'items';
 
 	static protected function getQueryOptions()
@@ -104,20 +102,20 @@ class OrmTraitTest extends PHPUnit_Framework_TestCase
 
 	public function testAfterGetListHooks()
 	{
-		$list = TableModel::getList(['inject_list' => true]);
+		$list = ConcreteTableModel::getList(['inject_list' => true]);
 		$this->assertTrue(isset($list['injected']), 'afterGetList() worked and allowed me inject something after the fetch');
 		$this->assertEquals(['Yep, it worked'], $list['injected']);
 
-		$list = TableModel::getList(['replace_list_completely' => true]);
+		$list = ConcreteTableModel::getList(['replace_list_completely' => true]);
 		$this->assertEquals(['Yep, it worked'], $list, 'afterGetList() worked and allowed me to completely replace the list');
 	}
 
 	public function testAfterGetByHooks()
 	{
-		$list = TableModel::getList();
+		$list = ConcreteTableModel::getList();
 		$this->assertNotEmpty($list, 'Crap, no items to test with!');
 
-		$obj = TableModel::getById(key($list), ['inject_getby' => true]);
+		$obj = ConcreteTableModel::getById(key($list), ['inject_getby' => true]);
 		$this->assertEquals(true, $obj->it_worked, 'afterGetBy() worked and allowed me to modify the object');
 	}
 }
