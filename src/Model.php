@@ -48,13 +48,13 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	/**
 	 * @var (array) The current values
 	 */
-	protected $values = array();
+	private $values = array();
 
 	/**
 	 * @var (array) The original values
 	 * When a value is modified, the original version will be stored here.
 	 */
-	protected $original_values = array();
+	private $original_values = array();
 
 	static protected function toArray($var)
 	{
