@@ -54,7 +54,9 @@ class TableModel extends Model
 	 */
 	static protected function getQueryOptions()
 	{
-		return array();
+		return [
+			'id' => null
+		];
 	}
 
 	/**
@@ -65,7 +67,8 @@ class TableModel extends Model
 	 */
 	static protected function computeQueryParts($dbh, array $opt, & $where, & $join, & $select)
 	{
-
+		$fields = ['id'];
+		static::computeStandardWhereClause($dbh, $fields, $opt, $where);
 	}
 
 	static protected function afterGetList($dbh, array $opt, & $list)
@@ -89,11 +92,14 @@ class TableModel extends Model
 	 */
 	static public function getList(array $opt = array())
 	{
+		// Note: by convention, the current table will always be aliased "t".
+		// it's obviously not fool proof and will fail if you have a table named "t"...
+		// Note 2: again by convention, the PK is "t.id"
 		$opt = self::mergeOptions(array_merge([
 			'pager' => null,
 			'order_by' => 'id',
 			'select' => 't.id, t.*',
-			'fetch_mode' => PDO::FETCH_UNIQUE
+			'fetch_mode' => \PDO::FETCH_OBJ | \PDO::FETCH_UNIQUE
 		], static::getQueryOptions()), $opt);
 
 		$dbh = Database::get();
@@ -159,7 +165,7 @@ class TableModel extends Model
 			$opt['select'] = 't.id, t.name'; // default
 		}
 
-		$opt['fetch_mode'] = PDO::FETCH_KEY_PAIR;
+		$opt['fetch_mode'] = \PDO::FETCH_KEY_PAIR;
 
 		return static::getList($opt);
 	}

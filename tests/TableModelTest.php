@@ -38,7 +38,7 @@ class ConcreteTableModel extends TableModel
 	}
 }
 
-class OrmTraitTest extends PHPUnit_Framework_TestCase
+class TableModelTest extends PHPUnit_Framework_TestCase
 {
 	static public function setUpBeforeClass()
 	{
@@ -92,10 +92,10 @@ class OrmTraitTest extends PHPUnit_Framework_TestCase
 
 		$where = [];
 
-		 $method = new ReflectionMethod(
+		$method = new ReflectionMethod(
 			'TableModel', 'computeStandardWhereClause'
 		);
-		$method->setAccessible(TRUE);
+		$method->setAccessible(true);
 		$method->invokeArgs(null, [$dbh, $fields, $opt, &$where]);
 		$this->assertEquals($expected, $where);
 	}
