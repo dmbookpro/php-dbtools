@@ -4,12 +4,37 @@ class ConcreteApiTableModel extends ApiTableModel
 {
 	static protected $table_name = 'items';
 
+	static protected function getQueryOptions()
+	{
+		return [
+			'id' => null,
+			
+			'embed_subitems' => false
+		];
+	}
+
 	static public function getFieldsForApi()
 	{
 		return [
 			'id' => true,
 			'a' => true
 		];
+	}
+
+	static protected function afterGetList($dbh, $opt, & $list)
+	{
+		if ( $opt['embed_subitems'] ) {
+			foreach ($list as &$item) {
+				$item->subitems = ['foobar'];
+			}
+		}
+	}
+
+	static protected function afterGetBy($dbh, $opt, & $obj)
+	{
+		if ( $opt['embed_subitems'] ) {
+			$obj->subitems = ['foobar'];
+		}
 	}
 }
 
@@ -170,6 +195,85 @@ class ApiTableModelTest extends PHPUnit_Framework_TestCase
 
 ///////////////////////////////////////////////////////////////////////////////
 // Embed
+
+	public function validEmbedOptions()
+	{
+		return array(
+			['subitems']
+		);
+	}
+
+	public function invalidEmbedOptions()
+	{
+		return array(
+			['something']
+		);
+	}
+
+	/**
+	 * @dataProvider validEmbedOptions
+	 */
+	public function testValidEmbedGetList($embed)
+	{
+		ConcreteApiTableModel::getListForApi([
+			'embed' => $embed
+		]);
+	}
+
+	/**
+	 * @dataProvider validEmbedOptions
+	 */
+	public function testValidEmbedGetBy($embed)
+	{
+		$obj = ConcreteApiTableModel::getById(1);
+		$obj->getValuesForApi([
+			'embed' => $embed
+		]);
+	}
+
+	/**
+	 * @dataProvider invalidEmbedOptions
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testInvalidEmbedGetList($embed)
+	{
+		ConcreteApiTableModel::getListForApi([
+			'embed' => $embed
+		]);
+	}
+
+	/**
+	 * @dataProvider invalidEmbedOptions
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testInvalidEmbedGetBy($embed)
+	{
+		$obj = ConcreteApiTableModel::getById(1);
+		$obj->getValuesForApi([
+			'embed' => $embed
+		]);
+	}
+
+	public function testEmbed()
+	{
+		$model = new ConcreteApiTableModel();
+
+		$list = ConcreteApiTableModel::getListForApi([
+			'pagination_meta' => false,
+			'embed' => 'subitems'
+		]);
+
+		$this->assertNotEmpty($list);
+		$this->assertTrue(isset($list[0]->subitems));
+
+		$obj = ConcreteApiTableModel::getById(1);
+		$this->assertNotNull($obj);
+
+		$values = $obj->getValuesForApi([
+			'embed' => 'subitems'
+		]);
+		$this->assertTrue(isset($values->subitems));
+	}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Combination of everything

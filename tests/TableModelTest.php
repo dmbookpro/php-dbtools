@@ -59,6 +59,32 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		));
 	}
 
+///////////////////////////////////////////////////////////////////////////////
+// Options
+
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testExtraneousOptionsGetList()
+	{
+		ConcreteTableModel::getList([
+			'embed' => 'foobar'
+		]);
+	}
+
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testExtraneousOptionsGetBy()
+	{
+		ConcreteTableModel::getById(1, [
+			'embed' => 'foobar'
+		]);
+	}
+
+///////////////////////////////////////////////////////////////////////////////
+// compute where clause
+
 	public function standardWhereClauses()
 	{
 		return [
@@ -99,6 +125,9 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		$method->invokeArgs(null, [$dbh, $fields, $opt, &$where]);
 		$this->assertEquals($expected, $where);
 	}
+
+///////////////////////////////////////////////////////////////////////////////
+// Before and after hooks
 
 	public function testAfterGetListHooks()
 	{

@@ -115,11 +115,11 @@ class ApiTableModel extends TableModel
 			$options = static::getQueryOptions();
 			$invalid_objects = [];
 			foreach ( explode(',',$embed) as $object ) {
-				if ( ! array_key_exists('fetch_'.$object, $options) ) {
+				if ( ! array_key_exists('embed_'.$object, $options) ) {
 					$invalid_objects[] = $object;
 					continue;
 				}
-				$opt['fetch_'.$object] = true;
+				$opt['embed_'.$object] = true;
 			}
 			if ( ! empty($invalid_objects) ) {
 				throw new \ApiTableModelException('Unknown objects in embed: '.implode(', ',$invalid_objects));
@@ -176,25 +176,6 @@ class ApiTableModel extends TableModel
 	}
 
 	/**
-	 * Get one item, with support for API option embed (the rest is ignored)
-	 */
-	static public function getByForApi(array $opt = array())
-	{
-		$default_api_opt = static::getQueryOptionsForApi();
-		$opt = array_merge($default_api_opt, $opt); // at this point we accept extraneous options
-
-		if ( $opt['embed'] ) {
-			$opt = array_merge($opt, self::convertEmbedToFetch($opt['embed']));
-		}
-
-		$obj = static::getBy(
-			array_diff_key($opt, $default_api_opt) // remove options from the API
-		);
-
-		return $obj;
-	}
-
-	/**
 	 * Only supports embed (the rest is ignored)
 	 */
 	public function getValuesForApi(array $opt = array())
@@ -215,12 +196,12 @@ class ApiTableModel extends TableModel
 
 		// only keep the public fields
 		$api_fields = static::getFieldsForApi();
-		$filtered_values = array_intersect_key($values, $api_fields);
+		$filtered_values = (object) array_intersect_key($values, $api_fields);
 
 		// add the embedded fields (which have been validated before)
 		if ( $opt['embed'] ) {
 			foreach ( explode(',',$opt['embed']) as $field ) {
-				$filtered_values[$field] = $this->{$field};
+				$filtered_values->$field = $this->{$field};
 			}
 		}
 
