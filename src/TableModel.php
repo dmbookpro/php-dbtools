@@ -99,7 +99,7 @@ class TableModel extends Model
 			'pager' => null,
 			'order_by' => 'id',
 			'select' => 't.id, t.*',
-			'fetch_mode' => \PDO::FETCH_OBJ | \PDO::FETCH_UNIQUE
+			'fetch_mode' => \PDO::FETCH_ASSOC | \PDO::FETCH_UNIQUE
 		], static::getQueryOptions()), $opt);
 
 		$dbh = Database::get();
@@ -333,5 +333,28 @@ class TableModel extends Model
 		}
 
 		return array_merge($array1, $array2);
+	}
+
+
+	static protected function parseJson($json, $default = null)
+	{
+		if ( is_string($json) ) {
+			$json = json_decode($json, true);
+			if ( ! $json ) {
+				$json = array();
+			}
+		}
+		elseif ( is_object($json) ) {
+			$json = (array) $json;
+		}
+		elseif ( $json === null ) {
+			$json = array();
+		}
+
+		if ( is_array($default) ) {
+			$json = array_merge($default, $json);
+		}
+
+		return $json;
 	}
 }
