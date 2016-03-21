@@ -161,7 +161,7 @@ class TableModel extends Model
 
 	static public function getListForSelect(array $opt = array())
 	{
-		if ( ! $opt['select'] ) {
+		if ( ! isset($opt['select']) ) {
 			$opt['select'] = 't.id, t.name'; // default
 		}
 
