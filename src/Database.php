@@ -9,6 +9,10 @@
  * @link https://github.com/rlanvin/php-dbtools
  */
 
+namespace DbTools;
+
+use \PDO;
+
 /**
  * Database connection handler.
  *

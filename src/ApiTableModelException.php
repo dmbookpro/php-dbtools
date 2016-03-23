@@ -1,6 +1,8 @@
 <?php
 
-class ApiTableModelException extends InvalidArgumentException
+namespace DbTools;
+
+class ApiTableModelException extends \InvalidArgumentException
 {
 	
 }

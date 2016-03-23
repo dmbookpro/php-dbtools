@@ -9,6 +9,8 @@
  * @link https://github.com/rlanvin/php-dbtools
  */
 
+namespace DbTools;
+
 /**
  * This class regroups helper functions for Model classes to work with a Table
  * (typically MySQL, although in theory it should work for everything).
@@ -201,7 +203,7 @@ class TableModel extends Model
 			$where
 		);
 
-		$obj = $dbh->query($sql)->fetch(PDO::FETCH_ASSOC);
+		$obj = $dbh->query($sql)->fetch(\PDO::FETCH_ASSOC);
 
 		if ( ! $obj ) {
 			return null;

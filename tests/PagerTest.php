@@ -1,5 +1,8 @@
 <?php
 
+use DbTools\Pager;
+use DbTools\Database;
+
 class PagerTest extends PHPUnit_Framework_TestCase
 {
 

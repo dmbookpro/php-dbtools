@@ -9,6 +9,8 @@
  * @link https://github.com/rlanvin/php-dbtools
  */
 
+namespace DbTools;
+
 /**
  * Pager for lists.
  */
@@ -151,11 +153,11 @@ class Pager
 		$total = 0;
 
 		if ( $sql !== null ) {
-			$total = (int) $dbh_or_statement->query($sql)->fetch(PDO::FETCH_COLUMN);
+			$total = (int) $dbh_or_statement->query($sql)->fetch(\PDO::FETCH_COLUMN);
 		}
 		elseif ( ($dbh_or_statement instanceof \PDOStatement) || is_callable([$dbh_or_statement, 'execute']) ) {
 			$dbh_or_statement->execute();
-			$total = (int) $dbh_or_statement->fetch(PDO::FETCH_COLUMN);
+			$total = (int) $dbh_or_statement->fetch(\PDO::FETCH_COLUMN);
 		}
 		else {
 			throw new \InvalidArgumentException(sprintf(

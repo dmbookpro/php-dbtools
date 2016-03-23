@@ -1,5 +1,7 @@
 <?php
 
+namespace DbTools;
+
 class ApiTableModel extends TableModel
 {
 
@@ -40,7 +42,7 @@ class ApiTableModel extends TableModel
 			}
 			$diff = array_diff($fields, array_keys($api_fields));
 			if ( ! empty($diff) ) {
-				throw new \ApiTableModelException('Unknown fields: '.implode(', ',$diff));
+				throw new ApiTableModelException('Unknown fields: '.implode(', ',$diff));
 			}
 		}
 		else {
@@ -101,7 +103,7 @@ class ApiTableModel extends TableModel
 		}
 
 		if ( ! empty($invalid_fields) ) {
-			throw new \ApiTableModelException('Unknown fields in sort: '.implode(', ',$invalid_fields));
+			throw new ApiTableModelException('Unknown fields in sort: '.implode(', ',$invalid_fields));
 		}
 
 		return implode(',',$order_by);
@@ -122,7 +124,7 @@ class ApiTableModel extends TableModel
 				$opt['embed_'.$object] = true;
 			}
 			if ( ! empty($invalid_objects) ) {
-				throw new \ApiTableModelException('Unknown objects in embed: '.implode(', ',$invalid_objects));
+				throw new ApiTableModelException('Unknown objects in embed: '.implode(', ',$invalid_objects));
 			}
 		}
 
@@ -140,7 +142,7 @@ class ApiTableModel extends TableModel
 		// pagination (LIMIT clause)
 		// should we validate some minimum, maximums ?
 		if ( $opt['per_page'] ) {
-			$opt['pager'] = new \Pager($opt['per_page'], $opt['page']);
+			$opt['pager'] = new Pager($opt['per_page'], $opt['page']);
 		}
 
 		// fields (SELECT clause)
@@ -213,7 +215,7 @@ class ApiTableModel extends TableModel
 		try {
 			return parent::mergeOptions($array1, $array2);
 		} catch ( \InvalidArgumentException $e ) {
-			throw new \ApiTableModelException($e->getMessage(), 0, $e);
+			throw new ApiTableModelException($e->getMessage(), 0, $e);
 		}
 	}
 }

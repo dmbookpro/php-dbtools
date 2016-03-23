@@ -1,5 +1,8 @@
 <?php
 
+use DbTools\TableModel;
+use DbTools\Database;
+
 class ConcreteTableModel extends TableModel
 {
 	static protected $table_name = 'items';
@@ -119,7 +122,7 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		$where = [];
 
 		$method = new ReflectionMethod(
-			'TableModel', 'computeStandardWhereClause'
+			'DbTools\TableModel', 'computeStandardWhereClause'
 		);
 		$method->setAccessible(true);
 		$method->invokeArgs(null, [$dbh, $fields, $opt, &$where]);

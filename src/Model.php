@@ -9,6 +9,8 @@
  * @link https://github.com/rlanvin/php-dbtools
  */
 
+namespace DbTools;
+
 /**
  * This is class to help implement models (the M in MVC). Technically a Model
  * can be viewed as a "versioned container".
@@ -297,6 +299,6 @@ class Model implements \ArrayAccess, \IteratorAggregate
 
 	public function getIterator()
 	{
-		return new ArrayIterator($this->values);
+		return new \ArrayIterator($this->values);
 	}
 }

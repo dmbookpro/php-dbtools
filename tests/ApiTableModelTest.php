@@ -1,5 +1,8 @@
 <?php
 
+use DbTools\ApiTableModel;
+use DbTools\Database;
+
 class ConcreteApiTableModel extends ApiTableModel
 {
 	static protected $table_name = 'items';
