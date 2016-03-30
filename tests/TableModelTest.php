@@ -150,4 +150,32 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		$obj = ConcreteTableModel::getById(key($list), ['inject_getby' => true]);
 		$this->assertEquals(true, $obj->it_worked, 'afterGetBy() worked and allowed me to modify the object');
 	}
+
+///////////////////////////////////////////////////////////////////////////////
+// Json Helpers
+
+	public function testParseJson()
+	{
+		$this->assertEquals([],TableModel::parseJson('[]'));
+
+		$this->assertEquals(['foobar' => true],TableModel::parseJson('[]', ['foobar' => true]));
+		$this->assertEquals(['foobar' => false], TableModel::parseJson('{"foobar":false}', ['foobar' => true]));
+	}
+
+	public function invalidJson()
+	{
+		return array(
+			['foobar'],
+			['"[]"']
+		);
+	}
+
+	/**
+	 * @dataProvider invalidJson
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testInvalidJson($json)
+	{
+		TableModel::parseJson($json);
+	}
 }

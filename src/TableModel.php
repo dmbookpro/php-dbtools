@@ -337,13 +337,29 @@ class TableModel extends Model
 		return array_merge($array1, $array2);
 	}
 
-
-	static protected function parseJson($json, $default = null)
+	/**
+	 * Decode a JSON-encoded array/object into a assoc array.
+	 *
+	 * @param $json (string) The JSON-encoded array
+	 * @param $default (array) The default array. The JSON will be merged with
+	 *                         this array in order to construct the final result.
+	 * @return array
+	 */
+	static public function parseJson($json, array $default = null)
 	{
 		if ( is_string($json) ) {
-			$json = json_decode($json, true);
 			if ( ! $json ) {
-				$json = array();
+				return array();
+			}
+
+			$json = json_decode($json, true);
+			if ( $json === null ) {
+				// invalid JSON
+				throw new \InvalidArgumentException("Invalid JSON");
+			}
+			elseif ( is_string($json) ) {
+				// JSON is valid but resulted in a string
+				throw new \InvalidArgumentException('JSON-encoded array or object expected, JSON-encoded string provided');
 			}
 		}
 		elseif ( is_object($json) ) {
@@ -353,7 +369,7 @@ class TableModel extends Model
 			$json = array();
 		}
 
-		if ( is_array($default) ) {
+		if ( $default !== null ) {
 			$json = array_merge($default, $json);
 		}
 
