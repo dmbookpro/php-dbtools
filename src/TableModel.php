@@ -349,17 +349,18 @@ class TableModel extends Model
 	{
 		if ( is_string($json) ) {
 			if ( ! $json ) {
-				return array();
+				$json = array();
 			}
-
-			$json = json_decode($json, true);
-			if ( $json === null ) {
-				// invalid JSON
-				throw new \InvalidArgumentException("Invalid JSON");
-			}
-			elseif ( is_string($json) ) {
-				// JSON is valid but resulted in a string
-				throw new \InvalidArgumentException('JSON-encoded array or object expected, JSON-encoded string provided');
+			else {
+				$json = json_decode($json, true);
+				if ( $json === null ) {
+					// invalid JSON
+					throw new \InvalidArgumentException("Invalid JSON");
+				}
+				elseif ( is_string($json) ) {
+					// JSON is valid but resulted in a string
+					throw new \InvalidArgumentException('JSON-encoded array or object expected, JSON-encoded string provided');
+				}
 			}
 		}
 		elseif ( is_object($json) ) {

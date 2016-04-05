@@ -160,6 +160,7 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 
 		$this->assertEquals(['foobar' => true],TableModel::parseJson('[]', ['foobar' => true]));
 		$this->assertEquals(['foobar' => false], TableModel::parseJson('{"foobar":false}', ['foobar' => true]));
+		$this->assertEquals(['foobar' => true], TableModel::parseJson('', ['foobar' => true]));
 	}
 
 	public function invalidJson()
