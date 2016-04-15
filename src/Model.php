@@ -88,10 +88,11 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	 */
 	public function & get($key)
 	{
+		$value = null;
 		if ( array_key_exists($key, $this->values) ) {
-			return $this->values[$key];
+			$value = & $this->values[$key];
 		}
-		return null;
+		return $value;
 	}
 
 	/**
@@ -149,6 +150,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	 */
 	public function setOriginal($key, $value)
 	{
+		$this->values[$key] = $value;
 		$this->original_values[$key] = $value;
 		return $this;
 	}

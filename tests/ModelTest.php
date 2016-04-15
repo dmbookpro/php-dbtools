@@ -44,6 +44,9 @@ class ModelTest extends PHPUnit_Framework_TestCase
 		// test that this doesnt fire "indirect modification of overloaded property"
 		$m->address['street'] = '42 foobar street';
 		$this->assertEquals('42 foobar street', $m->address['street']);
+
+		// test that this doesn't fire " Only variable references should be returned by reference"
+		$this->assertNull($m->foobar);
 	}
 
 	/**
@@ -64,6 +67,9 @@ class ModelTest extends PHPUnit_Framework_TestCase
 		// test that this doesnt fire "indirect modification of overloaded element"
 		$m['address']['street'] = '42 foobar street';
 		$this->assertEquals('42 foobar street', $m['address']['street']);
+
+		// test that this doesn't fire " Only variable references should be returned by reference"
+		$this->assertNull($m['foobar']);
 	}
 
 	public function testIterator()
@@ -193,6 +199,18 @@ class ModelTest extends PHPUnit_Framework_TestCase
 			'new_field' => [null, $v2['new_field']],
 			'old_field' => [$v1['old_field'], $v2['old_field']]
 		), $m->getDiff('both_merged'));
+	}
+
+	public function testSetOriginal()
+	{
+		$m = new Model([
+			'value' => 'foobar'
+		]);
+
+		$this->assertFalse($m->isModified('value'));
+		$m->setOriginal('value', 'Something else');
+		$this->assertFalse($m->isModified('value'));
+		$this->assertEquals('Something else', $m->value);
 	}
 
 	public function testMultipleModifications()
