@@ -80,12 +80,13 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	public function __construct($values = array())
 	{
 		$this->values = static::toArray($values);
+		$this->original_values = $this->values;
 	}
 
 	/**
 	 * Returns the current version of a key.
 	 */
-	public function get($key)
+	public function & get($key)
 	{
 		if ( array_key_exists($key, $this->values) ) {
 			return $this->values[$key];
@@ -98,14 +99,6 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	 */
 	public function set($key, $value)
 	{
-		if ( ! array_key_exists($key, $this->original_values) ) {
-			$this->original_values[$key] = array_key_exists($key, $this->values) ? $this->values[$key] : null;
-		}
-		elseif ( $value == $this->original_values[$key] ) {
-			// value reset to the original, we remove it
-			unset($this->original_values[$key]);
-		}
-
 		$this->values[$key] = $value;
 		return $this;
 	}
@@ -147,12 +140,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 		if ( array_key_exists($key, $this->original_values) ) {
 			return $this->original_values[$key];
 		}
-		elseif ( array_key_exists($key, $this->values) ) {
-			return $this->values[$key];
-		}
-		else {
-			return null;
-		}
+		return null;
 	}
 
 	/**
@@ -161,10 +149,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	 */
 	public function setOriginal($key, $value)
 	{
-		if ( array_key_exists($key, $this->original_values) ) {
-			unset($this->original_values[$key]);
-		}
-		$this->values[$key] = $value;
+		$this->original_values[$key] = $value;
 		return $this;
 	}
 
@@ -174,7 +159,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	 */
 	public function getOriginalValues()
 	{
-		return array_merge($this->values, $this->original_values);
+		return $this->original_values;
 	}
 
 	/**
@@ -185,7 +170,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	public function isModified($key = null)
 	{
 		if ( $key === null ) {
-			return ! empty($this->original_values);
+			return $this->original_values != $this->values;
 		}
 		else {
 			return array_key_exists($key, $this->original_values) && $this->original_values[$key] != $this->values[$key];
@@ -200,12 +185,17 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	{
 		$diff = array();
 
+		$values = $this->values;
 		switch ( $type ) {
 			case 'original':
 				foreach ( $this->original_values as $key => $value ) {
 					if ( $value != $this->values[$key] ) {
 						$diff[$key] = $this->original_values[$key];
 					}
+					unset($values[$key]);
+				}
+				foreach ( $values as $key => $value ) {
+					$diff[$key] = null;
 				}
 				break;
 
@@ -214,7 +204,9 @@ class Model implements \ArrayAccess, \IteratorAggregate
 					if ( $value != $this->values[$key] ) {
 						$diff[$key] = $this->values[$key];
 					}
+					unset($values[$key]);
 				}
+				$diff += $values;
 				break;
 
 			case 'both':
@@ -223,6 +215,11 @@ class Model implements \ArrayAccess, \IteratorAggregate
 						$diff[0][$key] = $this->original_values[$key];
 						$diff[1][$key] = $this->values[$key];
 					}
+					unset($values[$key]);
+				}
+				foreach ( $values as $key => $value ) {
+					$diff[0][$key] = null;
+					$diff[1][$key] = $value;
 				}
 				break;
 
@@ -231,6 +228,10 @@ class Model implements \ArrayAccess, \IteratorAggregate
 					if ( $value != $this->values[$key] ) {
 						$diff[$key] = [$this->original_values[$key], $this->values[$key]];
 					}
+					unset($values[$key]);
+				}
+				foreach ( $values as $key => $value ) {
+					$diff[$key] = [null, $value];
 				}
 				break;
 
@@ -244,7 +245,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 ///////////////////////////////////////////////////////////////////////////////
 // Object interface
 
-	public function __get($key)
+	public function & __get($key)
 	{
 		return $this->get($key);
 	}
@@ -270,7 +271,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	 * @param $key (mixed)
 	 * @return mixed
 	 */
-	public function offsetGet($key)
+	public function & offsetGet($key)
 	{
 		return $this->get($key);
 	}

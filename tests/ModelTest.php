@@ -31,12 +31,19 @@ class ModelTest extends PHPUnit_Framework_TestCase
 	public function testObjectInterface()
 	{
 		$m = new Model([
-			'username' => 'john'
+			'username' => 'john',
+			'address' => [
+				'street' => ''
+			]
 		]);
 
 		$this->assertEquals('john', $m->username, '__get() returns the value');
 		$m->username = 'jane';
 		$this->assertEquals('jane', $m->username, '__set() sets the value');
+
+		// test that this doesnt fire "indirect modification of overloaded property"
+		$m->address['street'] = '42 foobar street';
+		$this->assertEquals('42 foobar street', $m->address['street']);
 	}
 
 	/**
@@ -45,11 +52,18 @@ class ModelTest extends PHPUnit_Framework_TestCase
 	public function testArrayAccess()
 	{
 		$m = new Model([
-			'username' => 'john'
+			'username' => 'john',
+			'address' => [
+				'street' => ''
+			]
 		]);
 		$this->assertEquals('john', $m['username'], 'offsetGet returns the value');
 		$m['username'] = 'jane';
 		$this->assertEquals('jane', $m['username'], 'offsetSet sets the value');
+
+		// test that this doesnt fire "indirect modification of overloaded element"
+		$m['address']['street'] = '42 foobar street';
+		$this->assertEquals('42 foobar street', $m['address']['street']);
 	}
 
 	public function testIterator()
@@ -114,7 +128,9 @@ class ModelTest extends PHPUnit_Framework_TestCase
 			'name' => 'Rémi',
 			'age' => 24,
 			'id' => [1,2,3,4],
-			'files' => [1 => new stdClass(), 2 => new stdClass()]
+			'files' => [1 => new stdClass(), 2 => new stdClass()],
+			'old_field' => 'foobar',
+			'identical' => 'This field doesnt change'
 		);
 
 		$v2 = array(
@@ -122,7 +138,9 @@ class ModelTest extends PHPUnit_Framework_TestCase
 			'age' => 30,
 			'id' => [3,4,5],
 			'files' => [2 => new stdClass()],
-			'new_field' => 'Hello!'
+			'new_field' => 'Hello!',
+			'old_field' => null,
+			'identical' => 'This field doesnt change'
 		);
 
 		$m = new Model($v1);
@@ -133,19 +151,47 @@ class ModelTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(['name' => 'Rémi'], $m->getDiff('original'), 'getDiff() returns the new value');
 		$this->assertEquals(['name' => 'Rémy'], $m->getDiff('modified'), 'getDiff() returns the new value');
 
+
 		$m = (new Model($v1))->merge($v2);
+		$this->assertEquals(array(
+			'age' => 24,
+			'id' => [1,2,3,4],
+			'files' => [1 => new stdClass(), 2 => new stdClass()],
+			'new_field' => null,
+			'old_field' => 'foobar'
+		), $m->getDiff('original'));
+
 		$this->assertEquals(array(
 			'age' => 30,
 			'id' => [3,4,5],
 			'files' => [2 => new stdClass()],
-			'new_field' => 'Hello!'
+			'new_field' => 'Hello!',
+			'old_field' => null
 		), $m->getDiff('modified'));
+
+		$this->assertEquals(array(
+			0 => [
+				'age' => 24,
+				'id' => [1,2,3,4],
+				'files' => [1 => new stdClass(), 2 => new stdClass()],
+				'new_field' => null,
+				'old_field' => 'foobar'
+			],
+			1 => [
+				'age' => 30,
+				'id' => [3,4,5],
+				'files' => [2 => new stdClass()],
+				'new_field' => 'Hello!',
+				'old_field' => null
+			]
+		), $m->getDiff('both'));
 
 		$this->assertEquals(array(
 			'age' => [$v1['age'], $v2['age']],
 			'id' => [$v1['id'], $v2['id']],
 			'files' => [$v1['files'], $v2['files']],
-			'new_field' => [null, $v2['new_field']]
+			'new_field' => [null, $v2['new_field']],
+			'old_field' => [$v1['old_field'], $v2['old_field']]
 		), $m->getDiff('both_merged'));
 	}
 
@@ -278,4 +324,18 @@ class ModelTest extends PHPUnit_Framework_TestCase
 		]);
 		$this->assertTrue($model->isModified('arr'));
 	}
+
+	public function testIndirectModification()
+	{
+		$model = new Model([
+			'age' => 0,
+			'address' => [
+				'street' => ''
+			]
+		]);
+
+		$model->address['street'] = 'Foobar Street';
+		$this->assertTrue($model->isModified('address'), 'Indirect modification is allowed, and should be tracked too');
+	}
+
 }
