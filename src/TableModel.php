@@ -253,60 +253,97 @@ class TableModel extends Model
 				continue;
 			}
 
-			// is we pass an array, we produce a IN clause
+			// is we pass an array, we produce a IN clause or a BETWEEN clause
 			if ( is_array($opt[$field]) ) {
-				if ( empty($opt[$field]) ) {
-					$where[] = sprintf(
-						"t.%s = ''",
-						$field
-					);
+				// BETWEEN
+				if ( isset($opt[$field]['between']) && is_array($opt[$field]['between']) ) {
+					if ( count($opt[$field]['between']) != 2 || ! array_key_exists(0,$opt[$field]['between']) || ! array_key_exists(1,$opt[$field]['between']) ) {
+						throw new \InvalidArgumentException('Between clause array must have exactly 2 rows');
+					}
+					list($min, $max) = $opt[$field]['between'];
+					if ( $min !== null && $max !== null ) {
+						$where[] = sprintf(
+							't.%s BETWEEN %s AND %s',
+							$field,
+							$dbh->quote($min),
+							$dbh->quote($max)
+						);
+					}
+					elseif ( $min !== null ) {
+						$where[] = sprintf(
+							't.%s >= %s',
+							$field,
+							$dbh->quote($min)
+						);
+					}
+					elseif ( $max !== null ) {
+						$where[] = sprintf(
+							't.%s <= %s',
+							$field,
+							$dbh->quote($max)
+						);
+					}
+					else {
+						// what do you expect me to do here?
+					}
 					continue;
 				}
-				elseif ( sizeof($opt[$field]) === 1 ) {
-					$opt[$field] = array_pop($opt[$field]);
-					// compute as if it wasn't an array
-				}
+				// IN
 				else {
-					$or_null = false;
-					$in = [];
-					foreach ( $opt[$field] as $value ) {
-						if ( $value === null || $value === false ) {
-							continue;
-						}
-						if ( $value === 'NULL' ) {
-							$or_null = true;
-							continue;
-						}
-						$in[] = $dbh->quote($value);
-					}
-					if ( empty($in) ) {
+					if ( empty($opt[$field]) ) {
+						// empty array produces empty SQL clause
 						$where[] = sprintf(
 							"t.%s = ''",
 							$field
 						);
 						continue;
 					}
-					$sql = [];
-					if ( ! empty($in) ) {
-						$sql[] = sprintf(
-							't.%s IN (%s)',
-							$field,
-							implode(',',$in)
-						);
-					}
-					if ( $or_null ) {
-						$sql[] = sprintf(
-							't.%s IS NULL',
-							$field
-						);
-					}
-					if ( isset($sql[1]) ) {
-						$where[] = '('.implode(' OR ',$sql).')';
+					elseif ( sizeof($opt[$field]) === 1 ) {
+						$opt[$field] = array_pop($opt[$field]);
+						// compute as if it wasn't an array
 					}
 					else {
-						$where[] = $sql[0];
+						$or_null = false;
+						$in = [];
+						foreach ( $opt[$field] as $value ) {
+							if ( $value === null || $value === false ) {
+								continue;
+							}
+							if ( $value === 'NULL' ) {
+								$or_null = true;
+								continue;
+							}
+							$in[] = $dbh->quote($value);
+						}
+						if ( empty($in) ) {
+							$where[] = sprintf(
+								"t.%s = ''",
+								$field
+							);
+							continue;
+						}
+						$sql = [];
+						if ( ! empty($in) ) {
+							$sql[] = sprintf(
+								't.%s IN (%s)',
+								$field,
+								implode(',',$in)
+							);
+						}
+						if ( $or_null ) {
+							$sql[] = sprintf(
+								't.%s IS NULL',
+								$field
+							);
+						}
+						if ( isset($sql[1]) ) {
+							$where[] = '('.implode(' OR ',$sql).')';
+						}
+						else {
+							$where[] = $sql[0];
+						}
+						continue;
 					}
-					continue;
 				}
 			}
 

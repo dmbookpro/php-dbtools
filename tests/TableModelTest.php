@@ -91,22 +91,29 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 	public function standardWhereClauses()
 	{
 		return [
-			[['id' => 1], ["t.id = '1'"]],
-			[['id' => 0], ["t.id = '0'"]],
-			[['id' => 'foobar'], ["t.id = 'foobar'"]],
-			[['id' => [1,2,3]], ["t.id IN ('1','2','3')"]],
-			[['id' => [3]], ["t.id = '3'"]],
-			[['id' => [0]], ["t.id = '0'"]],
-			[['id' => 'NULL'], ["t.id IS NULL"]],
-			[['id' => 'NOT NULL'], ["t.id IS NOT NULL"]],
+			// option            expected sql
+			[['id' => 1],            ["t.id = '1'"]],
+			[['id' => 0],            ["t.id = '0'"]],
+			[['id' => 'foobar'],     ["t.id = 'foobar'"]],
+			[['id' => [1,2,3]],      ["t.id IN ('1','2','3')"]],
+			[['id' => [3]],          ["t.id = '3'"]],
+			[['id' => [0]],          ["t.id = '0'"]],
+			[['id' => 'NULL'],       ["t.id IS NULL"]],
+			[['id' => 'NOT NULL'],   ["t.id IS NOT NULL"]],
 			[['id' => [1,2,'NULL']], ["(t.id IN ('1','2') OR t.id IS NULL)"]],
-			[['id' => [1,2,null]], ["t.id IN ('1','2')"]],
-			[['id' => [1,2,'']], ["t.id IN ('1','2','')"]],
-			[['id' => null], []],
-			[['id' => false], []],
-			[['id' => ''], ["t.id = ''"]],
-			[['id' => []], ["t.id = ''"]],
-			[['id' => [null]], ["t.id = ''"]],
+			[['id' => [1,2,null]],   ["t.id IN ('1','2')"]],
+			[['id' => [1,2,'']],     ["t.id IN ('1','2','')"]],
+			[['id' => null],         []],
+			[['id' => false],        []],
+			[['id' => ''],           ["t.id = ''"]],
+			[['id' => []],           ["t.id = ''"]],
+			[['id' => [null]],       ["t.id = ''"]],
+
+			[['id' => ['between' => [0,10]]],    ["t.id BETWEEN '0' AND '10'"]],
+			[['id' => ['between' => [null,10]]], ["t.id <= '10'"]],
+			[['id' => ['between' => [10,null]]], ["t.id >= '10'"]],
+			[['id' => ['between' => [0,null]]],  ["t.id >= '0'"]],
+			[['id' => ['between' => [null,0]]],  ["t.id <= '0'"]],
 		];
 	}
 
@@ -127,6 +134,33 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		$method->setAccessible(true);
 		$method->invokeArgs(null, [$dbh, $fields, $opt, &$where]);
 		$this->assertEquals($expected, $where);
+	}
+
+	public function invalidStandardWhereClauses()
+	{
+		return array(
+			[['id' => ['between' => ['A','B','C']]]],
+			[['id' => ['between' => ['A' => 1,'B' => 2]]]],
+		);
+	}
+
+	/**
+	 * @dataProvider invalidStandardWhereClauses
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testComputeStandardWhereClauseInvalid($opt)
+	{
+		$dbh = Database::get();
+
+		$fields = ['id'];
+
+		$where = [];
+
+		$method = new ReflectionMethod(
+			'DbTools\TableModel', 'computeStandardWhereClause'
+		);
+		$method->setAccessible(true);
+		$method->invokeArgs(null, [$dbh, $fields, $opt, &$where]);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////
