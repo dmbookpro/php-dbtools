@@ -33,7 +33,7 @@ class Database
 	static public function setConfig(array $config)
 	{
 		if ( ! isset($config['default']) ) {
-			throw new InvalidArgumentException('"default" database handler configuration is missing');
+			throw new \InvalidArgumentException('"default" database handler configuration is missing');
 		}
 
 		// reset config and handlers
@@ -62,7 +62,7 @@ class Database
 		}
 
 		if ( ! isset(self::$config[$handler]) ) {
-			throw new InvalidArgumentException("Configuration for handler $handler not found");
+			throw new \InvalidArgumentException("Configuration for handler $handler not found");
 		}
 
 		return self::$config[$handler];
