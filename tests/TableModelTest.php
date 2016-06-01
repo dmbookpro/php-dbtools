@@ -195,6 +195,12 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(['foobar' => true],TableModel::parseJson('[]', ['foobar' => true]));
 		$this->assertEquals(['foobar' => false], TableModel::parseJson('{"foobar":false}', ['foobar' => true]));
 		$this->assertEquals(['foobar' => true], TableModel::parseJson('', ['foobar' => true]));
+		$this->assertEquals(['foobar' => true], TableModel::parseJson('{}', ['foobar' => true]));
+		$this->assertEquals(['foobar' => true], TableModel::parseJson('null', ['foobar' => true]));
+
+		$this->assertEquals([],TableModel::parseJson(array()));
+		$this->assertEquals([],TableModel::parseJson(new stdClass()));
+		$this->assertEquals([],TableModel::parseJson(null));
 	}
 
 	public function invalidJson()
@@ -212,5 +218,46 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 	public function testInvalidJson($json)
 	{
 		TableModel::parseJson($json);
+	}
+
+///////////////////////////////////////////////////////////////////////////////
+// Date helpers
+
+	public function validDates()
+	{
+		return [
+			// input        datetime
+			['2016-06-01', '2016-06-01 00:00:00'],
+			['2016-06-01 12:42:10', '2016-06-01 12:42:10'],
+			[new DateTime('2016-06-01'), '2016-06-01 00:00:00'],
+		];
+	}
+
+	/**
+	 * @dataProvider validDates
+	 */
+	public function testParseDate($input, $datetime)
+	{
+		$this->assertEquals($datetime, TableModel::parseDate($input)->format('Y-m-d H:i:s'));
+	}
+
+	public function invalidDates()
+	{
+		return [
+			['foobar'],
+			[null],
+			[''],
+			[array()],
+			[new stdClass()],
+		];
+	}
+
+	/**
+	 * @dataProvider invalidDates
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testParseDateInvalid($input)
+	{
+		TableModel::parseDate($input);
 	}
 }

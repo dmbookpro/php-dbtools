@@ -18,7 +18,7 @@ namespace DbTools;
  * The child class should implement at least:
  *  - getQueryOptions()
  *  - computeQueryParts()
- *  - getTableName() (or add a static variable $table_name)
+ *  - getTableName() or add a static variable $table_name
  *
  * This class will provide:
  *  - getList()
@@ -73,11 +73,19 @@ class TableModel extends Model
 		static::computeStandardWhereClause($dbh, $fields, $opt, $where);
 	}
 
+	/**
+	 * Method that is executed after getList. Provides a hook to child class to
+	 * alter the results, e.g. decode JSON fields.
+	 */
 	static protected function afterGetList($dbh, array $opt, & $list)
 	{
 
 	}
 
+	/**
+	 * Method that is executed after getBy. Provides a hook to child class to
+	 * alter the results, e.g. decode JSON fields.
+	 */
 	static protected function afterGetBy($dbh, array $opt, & $obj)
 	{
 
@@ -161,6 +169,10 @@ class TableModel extends Model
 		return $list;
 	}
 
+	/**
+	 * Return a assoc array with t.id => t.name
+	 * This will not work for every time, and can be changed in child classes.
+	 */
 	static public function getListForSelect(array $opt = array())
 	{
 		if ( ! isset($opt['select']) ) {
@@ -172,6 +184,10 @@ class TableModel extends Model
 		return static::getList($opt);
 	}
 
+	/**
+	 * Get one row from the table into an object.
+	 * @return object|null An object of the current class
+	 */
 	static public function getBy(array $opt = array())
 	{
 		$opt = self::mergeOptions(static::getQueryOptions(), $opt);
@@ -216,6 +232,9 @@ class TableModel extends Model
 		return $obj;
 	}
 
+	/**
+	 * Get a row by ID
+	 */
 	static public function getById($id, array $opt = array())
 	{
 		if ( ! $id ) {
@@ -228,6 +247,24 @@ class TableModel extends Model
 
 ///////////////////////////////////////////////////////////////////////////////
 // Compute functions (helpers)
+
+	/**
+	 * Helper that merges two arrays and throws an exception for unsupported keys,
+	 * i.e. keys from array2 not in array1.
+	 *
+	 * @param $array1 (array)
+	 * @param $array2 (array)
+	 * @return array
+	 */
+	static public function mergeOptions(array $array1, array $array2)
+	{
+		$diff = array_diff_key($array2, $array1);
+		if ( ! empty($diff) ) {
+			throw new \InvalidArgumentException('Unsupported query options: '. implode(', ',array_keys($diff)));
+		}
+
+		return array_merge($array1, $array2);
+	}
 
 	/** 
 	 * This method computes a fairly standard where clause for unique fields, 
@@ -364,14 +401,39 @@ class TableModel extends Model
 		}
 	}
 
-	static public function mergeOptions(array $array1, array $array2)
+	/**
+	 * Convert any date into a DateTime object.
+	 * @throws InvalidArgumentException on error
+	 * @param mixed $date
+	 * @return DateTime
+	 */
+	static public function parseDate($date)
 	{
-		$diff = array_diff_key($array2, $array1);
-		if ( ! empty($diff) ) {
-			throw new \InvalidArgumentException('Unsupported query options: '. implode(', ',array_keys($diff)));
+		if ( $date === null || $date === '' ) {
+			throw new \InvalidArgumentException(
+				"Failed to parse the date - no date was given"
+			);
 		}
 
-		return array_merge($array1, $array2);
+		// DateTimeInterface is only on PHP 5.5+, and includes DateTimeImmutable
+		if ( ! $date instanceof \DateTime && ! $date instanceof \DateTimeInterface ) {
+			try {
+				if ( is_integer($date) ) {
+					$date = \DateTime::createFromFormat('U',$date);
+				}
+				else {
+					$date = new \DateTime($date);
+				}
+			} catch (\Exception $e) {
+				throw new \InvalidArgumentException(
+					"Failed to parse the date - invalid format"
+				);
+			}
+		}
+		else {
+			$date = clone $date; // avoid reference problems
+		}
+		return $date;
 	}
 
 	/**
@@ -391,11 +453,18 @@ class TableModel extends Model
 			else {
 				$json = json_decode($json, true);
 				if ( $json === null ) {
-					// invalid JSON
-					throw new \InvalidArgumentException("Invalid JSON");
+					if ( ($error = json_last_error()) !== JSON_ERROR_NONE ) {
+						// invalid JSON
+						throw new \InvalidArgumentException("Invalid JSON (error #$error)");
+					}
+					else {
+						$json = array();
+					}
 				}
 				elseif ( is_string($json) ) {
 					// JSON is valid but resulted in a string
+					// I'm not sure if we should throw an exception, or cast it,
+					// or ignore it and return a string
 					throw new \InvalidArgumentException('JSON-encoded array or object expected, JSON-encoded string provided');
 				}
 			}
