@@ -67,7 +67,7 @@ class TableModel extends Model
 	 * Should be implemented in the child class
 	 * @return null
 	 */
-	static protected function computeQueryParts($dbh, array $opt, & $where, & $join, & $select)
+	static protected function computeQueryParts($dbh, array & $opt, & $where, & $join, & $select)
 	{
 		$fields = ['id'];
 		static::computeStandardWhereClause($dbh, $fields, $opt, $where);
