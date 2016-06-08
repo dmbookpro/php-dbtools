@@ -266,7 +266,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	 */
 	public function offsetExists($key)
 	{
-		$this->array_key_exists($key, $this->values);
+		return array_key_exists($key, $this->values);
 	}
 
 	/**

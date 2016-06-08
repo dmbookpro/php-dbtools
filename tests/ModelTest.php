@@ -63,6 +63,7 @@ class ModelTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('john', $m['username'], 'offsetGet returns the value');
 		$m['username'] = 'jane';
 		$this->assertEquals('jane', $m['username'], 'offsetSet sets the value');
+		$this->assertTrue(isset($m['username']), 'offsetExists works');
 
 		// test that this doesnt fire "indirect modification of overloaded element"
 		$m['address']['street'] = '42 foobar street';
@@ -70,6 +71,7 @@ class ModelTest extends PHPUnit_Framework_TestCase
 
 		// test that this doesn't fire " Only variable references should be returned by reference"
 		$this->assertNull($m['foobar']);
+
 	}
 
 	public function testIterator()
