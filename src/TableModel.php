@@ -107,6 +107,7 @@ class TableModel extends Model
 		// Note 2: again by convention, the PK is "t.id"
 		$opt = self::mergeOptions(array_merge([
 			'pager' => null,
+			'limit' => null,
 			'order_by' => 'id',
 			'select' => 't.id, t.*',
 			'fetch_mode' => \PDO::FETCH_ASSOC | \PDO::FETCH_UNIQUE
@@ -117,6 +118,10 @@ class TableModel extends Model
 		$where = array();
 		$select = is_array($opt['select']) ? $opt['select'] : array($opt['select']);
 		$join = array();
+
+		if ( $opt['limit'] && ! self::isValidLimit($opt['limit']) ) {
+			throw new \InvalidArgumentException("Malformed 'limit' option");
+		}
 
 		static::computeQueryParts($dbh, $opt, $where, $join, $select);
 
@@ -140,6 +145,7 @@ class TableModel extends Model
 			if ( $opt['pager']->getCurrentPage(false) > $opt['pager']->getLastPage() ) {
 				return null;
 			}
+			$opt['limit'] = $opt['pager']->getLimitClause();
 		}
 
 		$sql = sprintf(
@@ -154,7 +160,7 @@ class TableModel extends Model
 			$join,
 			$where ? 'WHERE '.$where : '',
 			$opt['order_by'] ? 'ORDER BY '.$opt['order_by'] : '',
-			$opt['pager']? 'LIMIT '.$opt['pager']->getLimitClause() : ''
+			$opt['limit'] ? 'LIMIT '.$opt['limit'] : ''
 		);
 		$ret = $dbh->query($sql);
 
@@ -399,6 +405,11 @@ class TableModel extends Model
 				);
 			}
 		}
+	}
+
+	static public function isValidLimit($limit)
+	{
+		return ! $limit || preg_match('/^\d+( ?, ?\d+)?$/', $limit);
 	}
 
 	/**

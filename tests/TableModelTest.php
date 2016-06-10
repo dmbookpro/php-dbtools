@@ -163,6 +163,27 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		$method->invokeArgs(null, [$dbh, $fields, $opt, &$where]);
 	}
 
+	public function limitClauses()
+	{
+		return [
+			['1', true],
+			['1,1', true],
+			['10,1', true],
+			['10, 1', true],
+			['10 , 1', true],
+			['10,1,1', false],
+			['foobar', false]
+		];
+	}
+
+	/**
+	 * @dataProvider limitClauses
+	 */
+	public function testValidateLimit($str, $expected_result)
+	{
+		$this->assertEquals($expected_result, TableModel::isValidLimit($str));
+	}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Before and after hooks
 
