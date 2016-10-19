@@ -43,6 +43,8 @@ class ConcreteTableModel extends TableModel
 
 class TableModelTest extends PHPUnit_Framework_TestCase
 {
+	static protected $id;
+
 	static public function setUpBeforeClass()
 	{
 		Database::setConfig([
@@ -60,6 +62,23 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 			'INSERT INTO items (a,b) VALUES(42, %s)',
 			$dbh->quote('The Answer')
 		));
+		self::$id = $dbh->lastInsertId();
+	}
+
+
+	public function testGetList()
+	{
+		$list = ConcreteTableModel::getList([
+		]);
+		$this->assertInternalType('array', $list);
+		$this->assertNotEmpty(ConcreteTableModel::getLastSelectQuery());
+	}
+
+	public function testGetBy()
+	{
+		$obj = ConcreteTableModel::getById(self::$id);
+		$this->assertInstanceOf('ConcreteTableModel', $obj);
+		$this->assertNotEmpty(ConcreteTableModel::getLastSelectQuery());
 	}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,7 +105,7 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 	}
 
 ///////////////////////////////////////////////////////////////////////////////
-// compute where clause
+// Compute where clause
 
 	public function standardWhereClauses()
 	{

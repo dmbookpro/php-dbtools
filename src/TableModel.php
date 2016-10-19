@@ -34,6 +34,11 @@ class TableModel extends Model
 	static protected $table_name = '';
 
 	/**
+	 * @var (string) The last SQL query, for debug purposes
+	 */
+	static protected $last_select_query = null;
+
+	/**
 	 * Default getter for the table name. Can be updated in the child class.
 	 * @return string
 	 */
@@ -132,7 +137,7 @@ class TableModel extends Model
 		$table_name = static::getTableName();
 
 		if ( $opt['pager'] ) {
-			$sql = sprintf(
+			self::$last_select_query = sprintf(
 				'SELECT COUNT(*)
 				FROM %s t
 				%s
@@ -141,14 +146,14 @@ class TableModel extends Model
 				$join,
 				$where ? 'WHERE '.$where : ''
 			);
-			$opt['pager']->queryForTotal($dbh, $sql);
+			$opt['pager']->queryForTotal($dbh, self::$last_select_query);
 			if ( $opt['pager']->getCurrentPage(false) > $opt['pager']->getLastPage() ) {
 				return null;
 			}
 			$opt['limit'] = $opt['pager']->getLimitClause();
 		}
 
-		$sql = sprintf(
+		self::$last_select_query = sprintf(
 			'SELECT %s
 			FROM %s t
 			%s
@@ -162,7 +167,7 @@ class TableModel extends Model
 			$opt['order_by'] ? 'ORDER BY '.$opt['order_by'] : '',
 			$opt['limit'] ? 'LIMIT '.$opt['limit'] : ''
 		);
-		$ret = $dbh->query($sql);
+		$ret = $dbh->query(self::$last_select_query);
 
 		if ( ! $opt['fetch_mode'] ) {
 			return $result;
@@ -214,7 +219,7 @@ class TableModel extends Model
 			throw new \LogicException('The WHERE clause cannot be empty, you must specify how to get the item for getBy to work (hint: implement computeQueryParts())');
 		}
 
-		$sql = sprintf(
+		self::$last_select_query = sprintf(
 			'SELECT %s
 			FROM %s t
 			%s
@@ -225,7 +230,7 @@ class TableModel extends Model
 			$where
 		);
 
-		$obj = $dbh->query($sql)->fetch(\PDO::FETCH_ASSOC);
+		$obj = $dbh->query(self::$last_select_query)->fetch(\PDO::FETCH_ASSOC);
 
 		if ( ! $obj ) {
 			return null;
@@ -492,5 +497,13 @@ class TableModel extends Model
 		}
 
 		return $json;
+	}
+
+///////////////////////////////////////////////////////////////////////////////
+// Log
+
+	static public function getLastSelectQuery()
+	{
+		return str_replace(["\t"],[''], self::$last_select_query);
 	}
 }
