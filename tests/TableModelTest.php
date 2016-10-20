@@ -71,6 +71,12 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		]);
 		$this->assertInternalType('array', $list);
 		$this->assertNotEmpty(ConcreteTableModel::getLastSelectQuery());
+
+		$list = ConcreteTableModel::getList([
+			'fetch_mode' => false
+		]);
+		$this->assertInstanceOf('PDOStatement', $list);
+		$this->assertInternalType('array', $list->fetchAll());
 	}
 
 	public function testGetBy()

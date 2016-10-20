@@ -206,7 +206,7 @@ class TableModel extends Model
 		$ret = $dbh->query(self::$last_select_query);
 
 		if ( ! $opt['fetch_mode'] ) {
-			return $result;
+			return $ret;
 		}
 
 		$list = $ret->fetchAll($opt['fetch_mode']);
