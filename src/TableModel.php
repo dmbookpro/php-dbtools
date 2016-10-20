@@ -100,6 +100,42 @@ class TableModel extends Model
 // Get functions (SELECT query)
 
 	/**
+	 * Method to do a select count(*).
+	 *
+	 * @param $opt (array) An array of options
+	 * @return int
+	 */
+	static public function getCount(array $opt = array())
+	{
+		$opt = self::mergeOptions(static::getQueryOptions(), $opt);
+
+		$dbh = Database::get();
+
+		$where = array();
+		$select = array();
+		$join = array();
+
+		static::computeQueryParts($dbh, $opt, $where, $join, $select);
+
+		$where = implode(" AND ", $where);
+		$join = implode(" \n ", $join);
+
+		$table_name = static::getTableName();
+
+		self::$last_select_query = sprintf(
+			'SELECT COUNT(*)
+			FROM %s t
+			%s
+			%s',
+			$table_name,
+			$join,
+			$where ? 'WHERE '.$where : ''
+		);
+		
+		return (int) $dbh->query(self::$last_select_query)->fetch(\PDO::FETCH_COLUMN);
+	}
+
+	/**
 	 * Method to get a list of objects from the database.
 	 *
 	 * @param $opt (array) An array of options

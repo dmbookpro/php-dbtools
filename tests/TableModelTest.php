@@ -65,7 +65,6 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		self::$id = $dbh->lastInsertId();
 	}
 
-
 	public function testGetList()
 	{
 		$list = ConcreteTableModel::getList([
@@ -79,6 +78,12 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		$obj = ConcreteTableModel::getById(self::$id);
 		$this->assertInstanceOf('ConcreteTableModel', $obj);
 		$this->assertNotEmpty(ConcreteTableModel::getLastSelectQuery());
+	}
+
+	public function testCount()
+	{
+		$count = ConcreteTableModel::getCount();
+		$this->assertEquals(1, $count);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////
