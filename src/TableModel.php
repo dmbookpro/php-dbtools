@@ -205,15 +205,13 @@ class TableModel extends Model
 		);
 		$ret = $dbh->query(self::$last_select_query);
 
-		if ( ! $opt['fetch_mode'] ) {
-			return $ret;
+		if ( $opt['fetch_mode'] ) {
+			$ret = $ret->fetchAll($opt['fetch_mode']);
 		}
 
-		$list = $ret->fetchAll($opt['fetch_mode']);
+		static::afterGetList($dbh, $opt, $ret);
 
-		static::afterGetList($dbh, $opt, $list);
-
-		return $list;
+		return $ret;
 	}
 
 	/**
