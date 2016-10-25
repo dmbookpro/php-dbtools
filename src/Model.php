@@ -181,9 +181,15 @@ class Model implements \ArrayAccess, \IteratorAggregate
 
 	/**
 	 * Returns only modified values.
+	 *
+	 * @param $type one of:
+	 *             - 'original' return the keys that have been modified, along with their original value
+	 *             - 'modified' return the keys that have been modified, along with their current (new) value
+	 *             - 'both' return an array with 2 arrays, one for 'original' and one for 'modified'
+	 *             - 'both_merged' return an array with the keys that have been modified and for each an array of [original, modified] values 
 	 * @return array
 	 */
-	public function getDiff($type = 'both')
+	public function getDiff($type = 'both_merged')
 	{
 		$diff = array();
 
@@ -212,6 +218,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 				break;
 
 			case 'both':
+				$diff = array(array(), array());
 				foreach ( $this->original_values as $key => $value ) {
 					if ( $value != $this->values[$key] ) {
 						$diff[0][$key] = $this->original_values[$key];

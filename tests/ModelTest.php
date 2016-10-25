@@ -203,6 +203,19 @@ class ModelTest extends PHPUnit_Framework_TestCase
 		), $m->getDiff('both_merged'));
 	}
 
+	public function testGetEmptyDiff()
+	{
+		$v1 = new Model(array(
+			'name' => 'Rémi',
+			'age' => 24,
+			'id' => [1,2,3,4],
+			'files' => [1 => new stdClass(), 2 => new stdClass()],
+			'old_field' => 'foobar',
+			'identical' => 'This field doesnt change'
+		));
+		$this->assertEquals(array(array(),array()), $v1->getDiff('both'));
+	}
+
 	public function testSetOriginal()
 	{
 		$m = new Model([
@@ -282,21 +295,21 @@ class ModelTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(array('bool' => 0), $model->getOriginalValues());
 		$this->assertEquals(array(), $model->getDiff('modified'));
 		$this->assertEquals(array(), $model->getDiff('both_merged'));
-		$this->assertEquals(array(), $model->getDiff());
+		$this->assertEquals(array(array(), array()), $model->getDiff('both'));
 
 		$model->merge(array('bool' => false));
 		$this->assertFalse($model->isModified('bool'));
 		$this->assertEquals(array('bool' => 0), $model->getOriginalValues());
 		$this->assertEquals(array(), $model->getDiff('modified'));
 		$this->assertEquals(array(), $model->getDiff('both_merged'));
-		$this->assertEquals(array(), $model->getDiff());
+		$this->assertEquals(array(array(), array()), $model->getDiff('both'));
 
 		$model->bool = true;
 		$this->assertTrue($model->isModified('bool'));
 		$this->assertEquals(['bool' => 0], $model->getOriginalValues());
 		$this->assertEquals(['bool' => true], $model->getDiff('modified'));
 		$this->assertEquals(['bool' => [0,true]], $model->getDiff('both_merged'));
-		$this->assertEquals(array(['bool' => 0],['bool' => true]), $model->getDiff());
+		$this->assertEquals(array(['bool' => 0],['bool' => true]), $model->getDiff('both'));
 	}
 
 	public function testIsModifiedWithArray()
