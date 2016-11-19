@@ -120,7 +120,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	 */
 	public function merge($values)
 	{
-		if ( ! $values instanceof Traversable ) {
+		if ( ! $values instanceof \Traversable ) {
 			$values = static::toArray($values);
 		}
 

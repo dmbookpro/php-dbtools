@@ -62,6 +62,10 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 			'INSERT INTO items (a,b) VALUES(42, %s)',
 			$dbh->quote('The Answer')
 		));
+		$dbh->exec(sprintf(
+			'INSERT INTO items (a,b) VALUES(42, %s)',
+			$dbh->quote('The Answer of life, etc.')
+		));
 		self::$id = $dbh->lastInsertId();
 	}
 
@@ -70,6 +74,7 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		$list = ConcreteTableModel::getList([
 		]);
 		$this->assertInternalType('array', $list);
+		$this->assertCount(2, $list);
 		$this->assertNotEmpty(ConcreteTableModel::getLastSelectQuery());
 
 		$list = ConcreteTableModel::getList([
@@ -77,6 +82,24 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		]);
 		$this->assertInstanceOf('PDOStatement', $list);
 		$this->assertInternalType('array', $list->fetchAll());
+	}
+
+	public function testGroupBy()
+	{
+		$list = ConcreteTableModel::getList([
+			'group_by' => 't.a'
+		]);
+		$this->assertInternalType('array', $list);
+		$this->assertCount(1, $list);
+	}
+
+	public function testOrderBy()
+	{
+		$list = ConcreteTableModel::getList([
+			'order_by' => 't.id DESC'
+		]);
+		$this->assertInternalType('array', $list);
+		$this->assertCount(2, $list);
 	}
 
 	public function testGetBy()
@@ -89,7 +112,7 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 	public function testCount()
 	{
 		$count = ConcreteTableModel::getCount();
-		$this->assertEquals(1, $count);
+		$this->assertEquals(2, $count);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////

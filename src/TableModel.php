@@ -149,6 +149,7 @@ class TableModel extends Model
 		$opt = self::mergeOptions(array_merge([
 			'pager' => null,
 			'limit' => null,
+			'group_by' => null,
 			'order_by' => 'id',
 			'select' => 't.id, t.*',
 			'fetch_mode' => \PDO::FETCH_ASSOC | \PDO::FETCH_UNIQUE
@@ -200,6 +201,7 @@ class TableModel extends Model
 			$table_name,
 			$join,
 			$where ? 'WHERE '.$where : '',
+			$opt['group_by'] ? 'GROUP BY '.$opt['group_by'] : '',
 			$opt['order_by'] ? 'ORDER BY '.$opt['order_by'] : '',
 			$opt['limit'] ? 'LIMIT '.$opt['limit'] : ''
 		);
