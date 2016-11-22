@@ -48,12 +48,12 @@ namespace DbTools;
 class Model implements \ArrayAccess, \IteratorAggregate
 {
 	/**
-	 * @var (array) The current values
+	 * @var array The current values
 	 */
 	private $values = array();
 
 	/**
-	 * @var (array) The original values
+	 * @var array The original values
 	 * When a value is modified, the original version will be stored here.
 	 */
 	private $original_values = array();
@@ -106,7 +106,8 @@ class Model implements \ArrayAccess, \IteratorAggregate
 
 	/**
 	 * Return all the current values as an array
-	 * @return array;
+	 *
+	 * @return array
 	 */
 	public function getValues()
 	{
@@ -115,7 +116,8 @@ class Model implements \ArrayAccess, \IteratorAggregate
 
 	/**
 	 * Merge the model values with an array of new values.
-	 * @param $values (array)
+	 *
+	 * @param array $values
 	 * @return $this
 	 */
 	public function merge($values)
@@ -133,7 +135,8 @@ class Model implements \ArrayAccess, \IteratorAggregate
 
 	/**
 	 * Return the original (unaltered) version of a value.
-	 * @param $key (string)
+	 *
+	 * @param string $key
 	 * @return mixed
 	 */
 	public function getOriginal($key)
@@ -147,6 +150,10 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	/**
 	 * Set the original value, i.e. by-passing the changelog mechanism.
 	 * Use this if you want to set an original value after the object has been created.
+	 *
+	 * @param string $key
+	 * @param mixed $value
+	 * @return $this
 	 */
 	public function setOriginal($key, $value)
 	{
@@ -157,6 +164,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 
 	/**
 	 * Return an array with the original state of the object
+	 *
 	 * @return array
 	 */
 	public function getOriginalValues()
@@ -166,23 +174,34 @@ class Model implements \ArrayAccess, \IteratorAggregate
 
 	/**
 	 * Return true if a value has been modified.
-	 * @param $key (string)
+	 *
+	 * @param string|array $keys The name of the value, or a array of values
+	 *                           If this is an array, it'll return true if ANY
+	 *                           of the value has been modified (this is like chaining OR)
 	 * @return bool
 	 */
-	public function isModified($key = null)
+	public function isModified($keys = null)
 	{
-		if ( $key === null ) {
+		if ( $keys === null ) {
 			return $this->original_values != $this->values;
 		}
-		else {
-			return array_key_exists($key, $this->original_values) && $this->original_values[$key] != $this->values[$key];
+
+		if ( is_array($keys) ) {
+			foreach ( $keys as $key ) {
+				if ( $this->isModified($key) ) {
+					return true;
+				}
+			}
+			return false;
 		}
+
+		return array_key_exists($keys, $this->original_values) && $this->original_values[$keys] != $this->values[$keys];
 	}
 
 	/**
 	 * Returns only modified values.
 	 *
-	 * @param $type one of:
+	 * @param string $type one of:
 	 *             - 'original' return the keys that have been modified, along with their original value
 	 *             - 'modified' return the keys that have been modified, along with their current (new) value
 	 *             - 'both' return an array with 2 arrays, one for 'original' and one for 'modified'
@@ -268,7 +287,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 // Array interface
 
 	/**
-	 * @param $key (mixed)
+	 * @param string $key
 	 * @return boolean
 	 */
 	public function offsetExists($key)
@@ -277,7 +296,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	}
 
 	/**
-	 * @param $key (mixed)
+	 * @param string $key
 	 * @return mixed
 	 */
 	public function & offsetGet($key)
@@ -286,8 +305,8 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	}
 
 	/**
-	 * @param $key (mixed)
-	 * @param $value (mixed)
+	 * @param string $key
+	 * @param mixed $value
 	 * @return void
 	 */
 	public function offsetSet($key, $value)
@@ -296,7 +315,7 @@ class Model implements \ArrayAccess, \IteratorAggregate
 	}
 
 	/**
-	 * @param $key (mixed)
+	 * @param string $key
 	 * @return void
 	 */
 	public function offsetUnset($key)

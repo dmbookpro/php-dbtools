@@ -62,7 +62,7 @@ class Database
 		}
 
 		if ( ! isset(self::$config[$handler]) ) {
-			throw new \InvalidArgumentException("Configuration for handler $handler not found");
+			throw new \InvalidArgumentException("Configuration for handler $handler not found - has the config been initialized correctly?");
 		}
 
 		return self::$config[$handler];

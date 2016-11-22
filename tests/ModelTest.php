@@ -154,6 +154,7 @@ class ModelTest extends PHPUnit_Framework_TestCase
 		$m = new Model($v1);
 		$m->name = 'Rémy';
 		$this->assertTrue($m->isModified('name'), 'isModified() returns true when the field has been modified');
+		$this->assertTrue($m->isModified(['name','age']), 'isModified() returns true when one of the field has been modified');
 		$this->assertEquals('Rémi', $m->getOriginal('name'), 'getOriginal() returns the original value of the field');
 		$this->assertEquals($v1, $m->getOriginalValues(), 'getOriginalValues() returns the original values');
 		$this->assertEquals(['name' => 'Rémi'], $m->getDiff('original'), 'getDiff() returns the new value');
