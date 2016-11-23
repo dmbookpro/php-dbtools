@@ -196,6 +196,7 @@ class TableModel extends Model
 			%s
 			%s
 			%s
+			%s
 			%s',
 			$select,
 			$table_name,

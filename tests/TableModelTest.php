@@ -102,6 +102,14 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 		$this->assertCount(2, $list);
 	}
 
+	public function testLimit()
+	{
+		$list = ConcreteTableModel::getList([
+			'limit' => 1
+		]);
+		$this->assertCount(1, $list);
+	}
+
 	public function testGetBy()
 	{
 		$obj = ConcreteTableModel::getById(self::$id);
