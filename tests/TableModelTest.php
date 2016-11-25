@@ -35,6 +35,7 @@ class ConcreteTableModel extends TableModel
 
 	static protected function afterGetBy($dbh, $opt, & $obj)
 	{
+		$obj = new static($obj);
 		if ( $opt['inject_getby'] ) {
 			$obj->it_worked = true;
 		}

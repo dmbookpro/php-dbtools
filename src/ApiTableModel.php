@@ -179,20 +179,22 @@ class ApiTableModel extends TableModel
 
 	/**
 	 * Only supports embed (the rest is ignored)
+	 *
+	 * XXX fixme, broken
 	 */
 	public function getValuesForApi(array $opt = array())
 	{
 		$default_api_opt = static::getQueryOptionsForApi();
 		$opt = array_merge($default_api_opt, $opt);
 
-		if ( $opt['embed'] ) {
-			$opt = array_merge($opt, self::convertEmbedToFetch($opt['embed']));
-		}
+		// if ( $opt['embed'] ) {
+		// 	$opt = array_merge($opt, self::convertEmbedToFetch($opt['embed']));
+		// }
 
-		// fetch all the embedded fields
-		$opt2 = static::mergeOptions(static::getQueryOptions(), array_diff_key($opt, $default_api_opt));
-		$dbh = Database::get();
-		static::afterGetBy($dbh, $opt2, $this);
+		// // fetch all the embedded fields
+		// $opt2 = static::mergeOptions(static::getQueryOptions(), array_diff_key($opt, $default_api_opt));
+		// $dbh = Database::get();
+		// static::afterGetBy($dbh, $opt2, $this);
 
 		$values = $this->getValues();
 

@@ -93,7 +93,7 @@ class TableModel extends Model
 	 */
 	static protected function afterGetBy($dbh, array $opt, & $obj)
 	{
-
+		$obj = new static($obj);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -272,8 +272,6 @@ class TableModel extends Model
 		if ( ! $obj ) {
 			return null;
 		}
-
-		$obj = new static($obj);
 
 		static::afterGetBy($dbh, $opt, $obj);
 
