@@ -17,12 +17,12 @@ class ConcreteTableModel extends TableModel
 		];
 	}
 
-	static protected function computeQueryParts($dbh, $opt, & $where, & $join, & $select)
+	static protected function computeQueryParts($dbh, array &$opt, & $where, & $join, & $select)
 	{
 		static::computeStandardWhereClause($dbh, ['id'], $opt, $where);
 	}
 
-	static protected function afterGetList($dbh, $opt, & $list)
+	static protected function afterGetList($dbh, array $opt, & $list)
 	{
 		if ( $opt['replace_list_completely'] ) {
 			$list = ['Yep, it worked'];
@@ -33,7 +33,7 @@ class ConcreteTableModel extends TableModel
 		}
 	}
 
-	static protected function afterGetBy($dbh, $opt, & $obj)
+	static protected function afterGetBy($dbh, array $opt, & $obj)
 	{
 		$obj = new static($obj);
 		if ( $opt['inject_getby'] ) {
@@ -330,8 +330,8 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 			['foobar'],
 			[null],
 			[''],
-			[array()],
-			[new stdClass()],
+			// [array()], // TypeError in PHP 7
+			// [new stdClass()], // TypeError in PHP 7
 		];
 	}
 

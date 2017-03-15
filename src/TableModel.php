@@ -5,8 +5,8 @@
  *
  * For the full copyright and license information, please view the LICENSE file.
  *
- * @author Rémi Lanvin <remi@cloudconnected.fr>
- * @link https://github.com/rlanvin/php-dbtools
+ * @author Rémi Lanvin <remi@dmbook.pro>
+ * @link https://github.com/dmbookpro/php-dbtools
  */
 
 namespace DbTools;

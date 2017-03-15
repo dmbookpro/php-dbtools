@@ -1,9 +1,9 @@
 {
-    "name": "rlanvin/php-dbtools",
+    "name": "dmbookpro/php-dbtools",
     "type": "library",
     "description": "Collection of classes for working with a database on PHP projects",
     "keywords": [],
-    "homepage": "https://github.com/rlanvin/php-dbtools",
+    "homepage": "https://github.com/dmbookpro/php-dbtools",
     "license": "MIT",
     "require": {
         "php": ">=5.4.0"

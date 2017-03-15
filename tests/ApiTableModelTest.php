@@ -24,7 +24,7 @@ class ConcreteApiTableModel extends ApiTableModel
 		];
 	}
 
-	static protected function afterGetList($dbh, $opt, & $list)
+	static protected function afterGetList($dbh, array $opt, & $list)
 	{
 		if ( $opt['embed_subitems'] ) {
 			foreach ($list as &$item) {
@@ -33,7 +33,7 @@ class ConcreteApiTableModel extends ApiTableModel
 		}
 	}
 
-	static protected function afterGetBy($dbh, $opt, & $obj)
+	static protected function afterGetBy($dbh, array $opt, & $obj)
 	{
 		$obj = new static($obj);
 		if ( $opt['embed_subitems'] ) {
