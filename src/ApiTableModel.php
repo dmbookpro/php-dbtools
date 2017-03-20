@@ -1,19 +1,7 @@
 <?php
 
-/**
- * Licensed under the MIT license.
- *
- * For the full copyright and license information, please view the LICENSE file.
- *
- * @author Rémi Lanvin <remi@dmbook.pro>
- * @link https://github.com/dmbookpro/php-dbtools
- */
-
 namespace DbTools;
 
-/**
- * This class extends TableModel to add useful features for REST API.
- */
 class ApiTableModel extends TableModel
 {
 
@@ -168,12 +156,16 @@ class ApiTableModel extends TableModel
 			$opt = array_merge($opt, self::convertEmbedToFetch($opt['embed']));
 		}
 
-		$opt['fetch_mode'] = \PDO::FETCH_OBJ | \PDO::FETCH_UNIQUE; // enforce this fetch mode
-		$list = static::getList(
+		$opt['fetch_mode'] = \PDO::FETCH_ASSOC | \PDO::FETCH_UNIQUE; // enforce this fetch mode so we can use array_values
+		$raw_list = static::getList(
 			array_diff_key($opt, $default_api_opt) // remove options from the API
 		);
 
-		$list = array_values($list); // remove the id as key (we won't need it anymore)
+		// $list = array_values($list); // remove the id as key (we won't need it anymore)
+		$list = [];
+		foreach ( $raw_list as $row ) {
+			$list[] = self::formatValues($row);
+		}
 
 		// pagination meta
 		if ( $opt['pagination_meta'] ) {
@@ -190,7 +182,7 @@ class ApiTableModel extends TableModel
 	}
 
 	/**
-	 * Only supports embed (the rest is ignored)
+	 * 
 	 *
 	 * XXX fixme, broken
 	 */
@@ -212,16 +204,39 @@ class ApiTableModel extends TableModel
 
 		// only keep the public fields
 		$api_fields = static::getFieldsForApi();
-		$filtered_values = (object) array_intersect_key($values, $api_fields);
+		// $filtered_values = (object) array_intersect_key($values, $api_fields);
+		$filtered_values = self::formatValues($values);
 
 		// add the embedded fields (which have been validated before)
 		if ( $opt['embed'] ) {
 			foreach ( explode(',',$opt['embed']) as $field ) {
-				$filtered_values->$field = $this->{$field};
+				$filtered_values[$field] = $this->{$field};
 			}
 		}
 
 		return $filtered_values;
+	}
+
+	static public function formatValues(array $values)
+	{
+		$formatted_values = array();
+
+		$api_fields = static::getFieldsForApi();
+		foreach ( $api_fields as $name => $formatter ) {
+			if ( array_key_exists($name, $values) ) {
+				$value = $values[$name];
+				switch ( $formatter ) {
+					case 'datetime':
+						if ( $value ) {
+							$value = date_create($value)->setTimeZone(new \DateTimeZone('GMT'))->format('Y-m-d\TH:i:s\Z');
+						}
+					break;
+				}
+				$formatted_values[$name] = $value;
+			}
+		}
+
+		return $formatted_values;
 	}
 
 	static public function mergeOptions(array $array1, array $array2)
