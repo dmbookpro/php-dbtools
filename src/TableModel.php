@@ -107,7 +107,7 @@ class TableModel extends Model
 	 */
 	static public function getCount(array $opt = array())
 	{
-		$opt = self::mergeOptions(static::getQueryOptions(), $opt);
+		$opt = static::mergeOptions(static::getQueryOptions(), $opt);
 
 		$dbh = Database::get();
 
@@ -122,7 +122,7 @@ class TableModel extends Model
 
 		$table_name = static::getTableName();
 
-		self::$last_select_query = sprintf(
+		static::$last_select_query = sprintf(
 			'SELECT COUNT(*)
 			FROM %s t
 			%s
@@ -132,7 +132,7 @@ class TableModel extends Model
 			$where ? 'WHERE '.$where : ''
 		);
 		
-		return (int) $dbh->query(self::$last_select_query)->fetch(\PDO::FETCH_COLUMN);
+		return (int) $dbh->query(static::$last_select_query)->fetch(\PDO::FETCH_COLUMN);
 	}
 
 	/**
@@ -146,7 +146,7 @@ class TableModel extends Model
 		// Note: by convention, the current table will always be aliased "t".
 		// it's obviously not fool proof and will fail if you have a table named "t"...
 		// Note 2: again by convention, the PK is "t.id"
-		$opt = self::mergeOptions(array_merge([
+		$opt = static::mergeOptions(array_merge([
 			'pager' => null,
 			'limit' => null,
 			'group_by' => null,
@@ -161,7 +161,7 @@ class TableModel extends Model
 		$select = is_array($opt['select']) ? $opt['select'] : array($opt['select']);
 		$join = array();
 
-		if ( $opt['limit'] && ! self::isValidLimit($opt['limit']) ) {
+		if ( $opt['limit'] && ! static::isValidLimit($opt['limit']) ) {
 			throw new \InvalidArgumentException("Malformed 'limit' option");
 		}
 
@@ -174,7 +174,7 @@ class TableModel extends Model
 		$table_name = static::getTableName();
 
 		if ( $opt['pager'] ) {
-			self::$last_select_query = sprintf(
+			static::$last_select_query = sprintf(
 				'SELECT COUNT(*)
 				FROM %s t
 				%s
@@ -183,14 +183,14 @@ class TableModel extends Model
 				$join,
 				$where ? 'WHERE '.$where : ''
 			);
-			$opt['pager']->queryForTotal($dbh, self::$last_select_query);
+			$opt['pager']->queryForTotal($dbh, static::$last_select_query);
 			if ( $opt['pager']->getCurrentPage(false) > $opt['pager']->getLastPage() ) {
 				return null;
 			}
 			$opt['limit'] = $opt['pager']->getLimitClause();
 		}
 
-		self::$last_select_query = sprintf(
+		static::$last_select_query = sprintf(
 			'SELECT %s
 			FROM %s t
 			%s
@@ -206,7 +206,7 @@ class TableModel extends Model
 			$opt['order_by'] ? 'ORDER BY '.$opt['order_by'] : '',
 			$opt['limit'] ? 'LIMIT '.$opt['limit'] : ''
 		);
-		$ret = $dbh->query(self::$last_select_query);
+		$ret = $dbh->query(static::$last_select_query);
 
 		if ( $opt['fetch_mode'] ) {
 			$ret = $ret->fetchAll($opt['fetch_mode']);
@@ -238,7 +238,7 @@ class TableModel extends Model
 	 */
 	static public function getBy(array $opt = array())
 	{
-		$opt = self::mergeOptions(static::getQueryOptions(), $opt);
+		$opt = static::mergeOptions(static::getQueryOptions(), $opt);
 
 		$dbh = Database::get();
 
@@ -256,7 +256,7 @@ class TableModel extends Model
 			throw new \LogicException('The WHERE clause cannot be empty, you must specify how to get the item for getBy to work (hint: implement computeQueryParts())');
 		}
 
-		self::$last_select_query = sprintf(
+		static::$last_select_query = sprintf(
 			'SELECT %s
 			FROM %s t
 			%s
@@ -267,7 +267,7 @@ class TableModel extends Model
 			$where
 		);
 
-		$obj = $dbh->query(self::$last_select_query)->fetch(\PDO::FETCH_ASSOC);
+		$obj = $dbh->query(static::$last_select_query)->fetch(\PDO::FETCH_ASSOC);
 
 		if ( ! $obj ) {
 			return null;
@@ -539,6 +539,6 @@ class TableModel extends Model
 
 	static public function getLastSelectQuery()
 	{
-		return str_replace(["\t"],[''], self::$last_select_query);
+		return str_replace(["\t"],[''], static::$last_select_query);
 	}
 }

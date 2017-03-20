@@ -63,6 +63,16 @@ class ApiTableModelTest extends PHPUnit_Framework_TestCase
 		));
 	}
 
+	/**
+	 * @expectedException \DbTools\ApiTableModelException
+	 */
+	public function testApiTableModelException()
+	{
+		ConcreteApiTableModel::getListForApi([
+			'foo' => 'bar'
+		]);
+	}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Fields
 
@@ -105,7 +115,7 @@ class ApiTableModelTest extends PHPUnit_Framework_TestCase
 
 	/**
 	 * @dataProvider invalidFields
-	 * @expectedException InvalidArgumentException
+	 * @expectedException \DbTools\ApiTableModelException
 	 */
 	public function testInvalidFields($fields)
 	{
@@ -175,7 +185,7 @@ class ApiTableModelTest extends PHPUnit_Framework_TestCase
 
 	/**
 	 * @dataProvider invalidSortOptions
-	 * @expectedException InvalidArgumentException
+	 * @expectedException \DbTools\ApiTableModelException
 	 */
 	public function testInvalidSort($sort)
 	{
@@ -237,7 +247,7 @@ class ApiTableModelTest extends PHPUnit_Framework_TestCase
 
 	/**
 	 * @dataProvider invalidEmbedOptions
-	 * @expectedException InvalidArgumentException
+	 * @expectedException \DbTools\ApiTableModelException
 	 */
 	public function testInvalidEmbedGetList($embed)
 	{

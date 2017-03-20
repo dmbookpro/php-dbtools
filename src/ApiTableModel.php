@@ -1,7 +1,19 @@
 <?php
 
+/**
+ * Licensed under the MIT license.
+ *
+ * For the full copyright and license information, please view the LICENSE file.
+ *
+ * @author Rémi Lanvin <remi@dmbook.pro>
+ * @link https://github.com/dmbookpro/php-dbtools
+ */
+
 namespace DbTools;
 
+/**
+ * This class extends TableModel to add useful features for REST API.
+ */
 class ApiTableModel extends TableModel
 {
 
