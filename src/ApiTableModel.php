@@ -231,6 +231,11 @@ class ApiTableModel extends TableModel
 							$value = date_create($value)->setTimeZone(new \DateTimeZone('GMT'))->format('Y-m-d\TH:i:s\Z');
 						}
 					break;
+					case 'bool': 
+						if ( $value !== null ) {
+							$value = !! $value;
+						}
+					break;
 				}
 				$formatted_values[$name] = $value;
 			}
