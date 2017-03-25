@@ -20,7 +20,9 @@ class ConcreteApiTableModel extends ApiTableModel
 	{
 		return [
 			'id' => null,
-			'a' => null
+			'a' => null,
+			'c' => 'bool',
+			'd' => 'datetime'
 		];
 	}
 
@@ -37,8 +39,13 @@ class ConcreteApiTableModel extends ApiTableModel
 	{
 		$obj = new static($obj);
 		if ( $opt['embed_subitems'] ) {
-			$obj['subitems'] = ['foobar'];
+			$obj->setOriginal('subitems','foobar');
 		}
+	}
+
+	public function getSubitems()
+	{
+		return ['foobar'];
 	}
 }
 
@@ -55,11 +62,14 @@ class ApiTableModelTest extends PHPUnit_Framework_TestCase
 		$dbh->exec('CREATE TABLE items (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			a INT,
-			b TEXT
+			b TEXT,
+			c INT DEFAULT 0,
+			d DATETIME
 		)');
 		$dbh->exec(sprintf(
-			'INSERT INTO items (a,b) VALUES(42, %s)',
-			$dbh->quote('The Answer')
+			'INSERT INTO items (a,b,c,d) VALUES(42, %s, 1, %s)',
+			$dbh->quote('The Answer'),
+			$dbh->quote('2017-03-25 12:00:00')
 		));
 	}
 
@@ -256,17 +266,17 @@ class ApiTableModelTest extends PHPUnit_Framework_TestCase
 		]);
 	}
 
-	// *
-	//  * @dataProvider invalidEmbedOptions
-	//  * @expectedException InvalidArgumentException
-	// * 
-	// public function testInvalidEmbedGetBy($embed)
-	// {
-	// 	$obj = ConcreteApiTableModel::getById(1);
-	// 	$obj->getValuesForApi([
-	// 		'embed' => $embed
-	// 	]);
-	// }
+	/**
+	 * @dataProvider invalidEmbedOptions
+	 * @expectedException InvalidArgumentException
+	 */ 
+	public function testInvalidEmbedGetBy($embed)
+	{
+		$obj = ConcreteApiTableModel::getById(1, [
+			'embed' => $embed
+		]);
+		$obj->getValuesForApi();
+	}
 
 	public function testEmbed()
 	{
@@ -278,20 +288,39 @@ class ApiTableModelTest extends PHPUnit_Framework_TestCase
 		]);
 
 		$this->assertNotEmpty($list);
-		// $this->assertTrue(isset($list[0]['subitems']));
+		$this->assertArrayHasKey('subitems',$list[0]);
+		$this->assertNotEmpty($list[0]['subitems']);
 
-		// $obj = ConcreteApiTableModel::getById(1);
-		// $this->assertNotNull($obj);
+		$obj = ConcreteApiTableModel::getById(1);
+		$this->assertNotNull($obj);
 
-		// $values = $obj->getValuesForApi([
-		// 	'embed' => 'subitems'
-		// ]);
-		// var_dump($values);
-		// $this->assertNotEmpty($values->subitems);
+		$values = $obj->getValuesForApi([
+			'embed' => 'subitems'
+		]);
+
+		$this->assertArrayHasKey('subitems', $values);
+		$this->assertNotEmpty($values['subitems']);
 	}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Combination of everything
 
+///////////////////////////////////////////////////////////////////////////////
+// Fields formatter
 
+	public function testFieldFormatters()
+	{
+		$obj = ConcreteApiTableModel::getById(1);
+		$values = $obj->getValuesForApi();
+		$this->assertInternalType('bool', $values['c']);
+		$this->assertEquals('2017-03-25T12:00:00Z', $values['d']);
+
+		$list = ConcreteApiTableModel::getListForApi([
+			'pagination_meta' => false
+		]);
+		foreach ( $list as $values ) {
+			$this->assertInternalType('bool', $values['c']);
+			$this->assertEquals('2017-03-25T12:00:00Z', $values['d']);
+		}
+	}
 }

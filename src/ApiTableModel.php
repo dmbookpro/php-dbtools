@@ -109,7 +109,7 @@ class ApiTableModel extends TableModel
 		return implode(',',$order_by);
 	}
 
-	static private function convertEmbedToFetch($embed)
+	static private function processEmbed($embed)
 	{
 		$opt = array();
 
@@ -152,8 +152,10 @@ class ApiTableModel extends TableModel
 		$opt['order_by'] = self::convertSortToOrderBy($opt['sort']);
 
 		// embed
+		$embed = [];
 		if ( $opt['embed'] ) {
-			$opt = array_merge($opt, self::convertEmbedToFetch($opt['embed']));
+			$opt = array_merge($opt, self::processEmbed($opt['embed']));
+			$embed = explode(',',$opt['embed']);
 		}
 
 		$opt['fetch_mode'] = \PDO::FETCH_ASSOC | \PDO::FETCH_UNIQUE; // enforce this fetch mode so we can use array_values
@@ -164,7 +166,7 @@ class ApiTableModel extends TableModel
 		// $list = array_values($list); // remove the id as key (we won't need it anymore)
 		$list = [];
 		foreach ( $raw_list as $row ) {
-			$list[] = self::formatValues($row);
+			$list[] = self::formatValues($row, $embed);
 		}
 
 		// pagination meta
@@ -182,63 +184,58 @@ class ApiTableModel extends TableModel
 	}
 
 	/**
-	 * 
+	 * Return the values of the object filtered and sanitized for the API.
 	 *
-	 * XXX fixme, broken
 	 */
 	public function getValuesForApi(array $opt = array())
 	{
 		$default_api_opt = static::getQueryOptionsForApi();
-		$opt = array_merge($default_api_opt, $opt);
-
-		// if ( $opt['embed'] ) {
-		// 	$opt = array_merge($opt, self::convertEmbedToFetch($opt['embed']));
-		// }
-
-		// // fetch all the embedded fields
-		// $opt2 = static::mergeOptions(static::getQueryOptions(), array_diff_key($opt, $default_api_opt));
-		// $dbh = Database::get();
-		// static::afterGetBy($dbh, $opt2, $this);
+		$opt = array_merge($default_api_opt, $opt); // at this point we accept extraneous options
 
 		$values = $this->getValues();
 
 		// only keep the public fields
-		$api_fields = static::getFieldsForApi();
-		// $filtered_values = (object) array_intersect_key($values, $api_fields);
 		$filtered_values = self::formatValues($values);
 
-		// add the embedded fields (which have been validated before)
+		// add the embedded fields
 		if ( $opt['embed'] ) {
+			self::processEmbed($opt['embed']); // filter out invalid
 			foreach ( explode(',',$opt['embed']) as $field ) {
-				$filtered_values[$field] = $this->{$field};
+				$method = 'get'.ucfirst($field);
+				$filtered_values[$field] = call_user_func([$this,$method]);
 			}
 		}
 
 		return $filtered_values;
 	}
 
-	static public function formatValues(array $values)
+	static public function formatValues(array $values, array $embed = array())
 	{
 		$formatted_values = array();
 
 		$api_fields = static::getFieldsForApi();
+		if ( $embed ) {
+			$api_fields = array_merge($api_fields, array_combine($embed, array_fill(0,sizeof($embed),null)));
+		};
 		foreach ( $api_fields as $name => $formatter ) {
-			if ( array_key_exists($name, $values) ) {
-				$value = $values[$name];
-				switch ( $formatter ) {
-					case 'datetime':
-						if ( $value ) {
-							$value = date_create($value)->setTimeZone(new \DateTimeZone('GMT'))->format('Y-m-d\TH:i:s\Z');
-						}
-					break;
-					case 'bool': 
-						if ( $value !== null ) {
-							$value = !! $value;
-						}
-					break;
-				}
-				$formatted_values[$name] = $value;
+			if ( ! array_key_exists($name, $values) ) {
+				continue;
 			}
+
+			$value = $values[$name];
+			switch ( $formatter ) {
+				case 'datetime':
+					if ( $value ) {
+						$value = date_create($value)->setTimeZone(new \DateTimeZone('GMT'))->format('Y-m-d\TH:i:s\Z');
+					}
+				break;
+				case 'bool': 
+					if ( $value !== null ) {
+						$value = !! $value;
+					}
+				break;
+			}
+			$formatted_values[$name] = $value;
 		}
 
 		return $formatted_values;
