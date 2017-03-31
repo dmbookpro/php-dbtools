@@ -10,7 +10,7 @@ class TestApiQuery extends ApiQuery
 	}
 	public function getSortableFields()
 	{
-		return ['id','created_at'];
+		return ['id' => 't.id', 'created_at' => 't.created_at'];
 	}
 }
 

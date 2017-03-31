@@ -27,7 +27,7 @@ class ApiQuery
 	public function getSortableFields()
 	{
 		return [
-			'id'
+			'id' => 'id'
 		];
 	}
 
@@ -118,11 +118,11 @@ class ApiQuery
 				$field = substr($field,1);
 			}
 
-			if ( ! in_array($field, $sortable_fields) ) {
+			if ( ! array_key_exists($field, $sortable_fields) ) {
 				$invalid_fields[] = $field;
 				continue;
 			}
-			$order_by[] = 't.'.$field.' '.$direction;
+			$order_by[] = $sortable_fields[$field].' '.$direction;
 		}
 
 		if ( ! empty($invalid_fields) ) {
