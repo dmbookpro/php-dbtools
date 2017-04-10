@@ -177,27 +177,44 @@ class ApiQuery
 	/**
 	 * Take an array of values and format it for the API.
 	 */
-	public function formatValues($values)
+	public function formatValues(array $values, array $formatters = null)
 	{
 		$formatted_values = array();
 
-		foreach ( $this->query['fields'] as $name => $formatter ) {
+		if ( $formatters === null ) {
+			$formatters = $this->query['fields'];
+		}
+
+		foreach ( $formatters as $name => $formatter ) {
 			if ( ! array_key_exists($name, $values) ) {
 				continue;
 			}
 
 			$value = $values[$name];
-			switch ( $formatter ) {
-				case 'datetime':
-					if ( $value ) {
-						$value = date_create($value)->setTimeZone(new \DateTimeZone('GMT'))->format('Y-m-d\TH:i:s\Z');
+			if ( is_array($formatter) && is_array($value) ) {
+				if ( sizeof($formatter) == 1 && isset($formatter[0]) ) {
+					$value = [];
+					foreach ( $values[$name] as $v ) {
+						$value[] = $this->formatValues($v, $formatter[0]);
 					}
-				break;
-				case 'bool': 
-					if ( $value !== null ) {
-						$value = !! $value;
-					}
-				break;
+				}
+				else {
+					$value = $this->formatValues($value, $formatter);
+				}
+			}
+			else {
+				switch ( $formatter ) {
+					case 'datetime':
+						if ( $value ) {
+							$value = date_create($value)->setTimeZone(new \DateTimeZone('GMT'))->format('Y-m-d\TH:i:s\Z');
+						}
+					break;
+					case 'bool': 
+						if ( $value !== null ) {
+							$value = !! $value;
+						}
+					break;
+				}
 			}
 			$formatted_values[$name] = $value;
 		}

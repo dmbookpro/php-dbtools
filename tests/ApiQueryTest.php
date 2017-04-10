@@ -33,6 +33,39 @@ class MockApiModel
 class ApiQueryTest extends PHPUnit_Framework_TestCase
 {
 
+	public function testFormatValuesRecursive()
+	{
+		$query = new ApiQuery();
+		$values = [
+			'object' => [
+				'id' => 1,
+				'name' => 'John'
+			]
+		];
+		$formatted = $query->formatValues($values, [
+			'object' => [
+				'id' => null
+			]
+		]);
+		$this->assertEquals(['object' => ['id' => 1]], $formatted);
+
+		$values = [
+			'objects' => [[
+				'id' => 1,
+				'name' => 'John'
+			],[
+				'id' => 2,
+				'name' => 'Jane'
+			]]
+		];
+		$formatted = $query->formatValues($values, [
+			'objects' => [[
+				'id' => null
+			]]
+		]);
+		$this->assertEquals(['objects' => [['id' => 1],['id' => 2]]], $formatted);
+	}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Fields
 
