@@ -493,9 +493,10 @@ class TableModel extends Model
 	 * @param $json (string) The JSON-encoded array
 	 * @param $default (array) The default array. The JSON will be merged with
 	 *                         this array in order to construct the final result.
+	 * @param $strict bool    Removes extraneous keys
 	 * @return array
 	 */
-	static public function parseJson($json, array $default = null)
+	static public function parseJson($json, array $default = null, $strict = false)
 	{
 		if ( is_string($json) ) {
 			if ( ! $json ) {
@@ -528,7 +529,10 @@ class TableModel extends Model
 		}
 
 		if ( $default !== null ) {
-			$json = array_merge($default, $json);
+			$json = array_replace_recursive($default, $json);
+			if ( $strict ) {
+				$json = array_intersect_key($json, $default);
+			}
 		}
 
 		return $json;
