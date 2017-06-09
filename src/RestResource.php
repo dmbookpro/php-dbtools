@@ -182,8 +182,16 @@ abstract class RestResource
 	/**
 	 * Format a collection
 	 */
-	public function formatCollection(array $collection)
+	public function formatCollection($collection)
 	{
+		if ( $collection === null ) {
+			return [];
+		}
+
+		if ( ! is_array($collection) ) {
+			throw new \InvalidArgumentException('Collection must be an array (or null)');
+		}
+
 		$results = [
 			'success' => true,
 			'page' => $this->model_filters['pager']->getCurrentPage(),
