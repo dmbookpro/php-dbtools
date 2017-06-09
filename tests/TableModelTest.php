@@ -154,28 +154,59 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 	{
 		return [
 			// option            expected sql
+
+			// equal, short version
 			[['id' => 1],            ["t.id = '1'"]],
 			[['id' => 0],            ["t.id = '0'"]],
 			[['id' => 'foobar'],     ["t.id = 'foobar'"]],
-			[['id' => [1,2,3]],      ["t.id IN ('1','2','3')"]],
-			[['id' => [3]],          ["t.id = '3'"]],
-			[['id' => [0]],          ["t.id = '0'"]],
-			[['id' => 'NULL'],       ["t.id IS NULL"]],
-			[['id' => 'NOT NULL'],   ["t.id IS NOT NULL"]],
-			[['id' => [1,2,'NULL']], ["(t.id IN ('1','2') OR t.id IS NULL)"]],
-			[['id' => [1,2,null]],   ["t.id IN ('1','2')"]],
-			[['id' => [1,2,'']],     ["t.id IN ('1','2','')"]],
 			[['id' => null],         []],
 			[['id' => false],        []],
 			[['id' => ''],           ["t.id = ''"]],
 			[['id' => []],           ["t.id = ''"]],
 			[['id' => [null]],       ["t.id = ''"]],
+			// equal, long version
+			[['id' => ['eq' => 'foobar']], ["t.id = 'foobar'"]],
 
+			// not equal
+			[['id' => ['neq' => 'foobar']], ["t.id != 'foobar'"]],
+
+			// less than
+			[['id' => ['lt' => 'foobar']], ["t.id < 'foobar'"]],
+
+			// less than or equal
+			[['id' => ['lte' => 'foobar']], ["t.id <= 'foobar'"]],
+
+			[['id' => ['gt' => 'foobar']], ["t.id > 'foobar'"]],
+
+			[['id' => ['gte' => 'foobar']], ["t.id >= 'foobar'"]],
+			
+			// in - short version
+			[['id' => [1,2,3]],      ["t.id IN ('1','2','3')"]],
+			[['id' => [3]],          ["t.id = '3'"]],
+			[['id' => [0]],          ["t.id = '0'"]],
+			[['id' => [1,2,null]],   ["t.id IN ('1','2')"]],
+			[['id' => [1,2,'']],     ["t.id IN ('1','2','')"]],
+			// in - long version
+			[['id' => ['in' => [1,2]]],          ["t.id IN ('1','2')"]],
+			[['id' => ['in' => [0]]],          ["t.id IN ('0')"]],
+			[['id' => ['in' => 0]],          ["t.id IN ('0')"]],
+			[['id' => ['in' => 'abc']],          ["t.id IN ('abc')"]],
+
+			// is null, is not null - short version (backward compat, should be removed)
+			[['id' => 'NULL'],       ["t.id IS NULL"]],
+			[['id' => 'NOT NULL'],   ["t.id IS NOT NULL"]],
+			[['id' => [1,2,'NULL']], ["(t.id IN ('1','2') OR t.id IS NULL)"]],
+			// is null, is not null - long version
+			[['id' => ['is' => 'null']], ['t.id IS NULL']],
+			[['id' => ['isnt' => 'null']], ['t.id IS NOT NULL']],
+
+			// between
 			[['id' => ['between' => [0,10]]],    ["t.id BETWEEN '0' AND '10'"]],
+			// between, backward compatibility
 			[['id' => ['between' => [null,10]]], ["t.id <= '10'"]],
 			[['id' => ['between' => [10,null]]], ["t.id >= '10'"]],
 			[['id' => ['between' => [0,null]]],  ["t.id >= '0'"]],
-			[['id' => ['between' => [null,0]]],  ["t.id <= '0'"]],
+			[['id' => ['between' => [null,0]]],  ["t.id <= '0'"]]
 		];
 	}
 

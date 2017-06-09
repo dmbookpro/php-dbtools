@@ -338,111 +338,230 @@ class TableModel extends Model
 
 			// is we pass an array, we produce a IN clause or a BETWEEN clause
 			if ( is_array($opt[$field]) ) {
-				// BETWEEN
-				if ( isset($opt[$field]['between']) && is_array($opt[$field]['between']) ) {
-					if ( count($opt[$field]['between']) != 2 || ! array_key_exists(0,$opt[$field]['between']) || ! array_key_exists(1,$opt[$field]['between']) ) {
-						throw new \InvalidArgumentException('Between clause array must have exactly 2 rows');
-					}
-					list($min, $max) = $opt[$field]['between'];
-					if ( $min !== null && $max !== null ) {
-						$where[] = sprintf(
-							't.%s BETWEEN %s AND %s',
-							$field,
-							$dbh->quote($min),
-							$dbh->quote($max)
-						);
-					}
-					elseif ( $min !== null ) {
-						$where[] = sprintf(
-							't.%s >= %s',
-							$field,
-							$dbh->quote($min)
-						);
-					}
-					elseif ( $max !== null ) {
-						$where[] = sprintf(
-							't.%s <= %s',
-							$field,
-							$dbh->quote($max)
-						);
-					}
-					else {
-						// what do you expect me to do here?
-					}
+
+				$key = key($opt[$field]);
+				if ( $key === 0 || $key === null ) {
+					static::computeIn($dbh, $field, $opt[$field], $where, true);
 					continue;
 				}
-				// IN
-				else {
-					if ( empty($opt[$field]) ) {
-						// empty array produces empty SQL clause
-						$where[] = sprintf(
-							"t.%s = ''",
-							$field
-						);
-						continue;
-					}
-					elseif ( sizeof($opt[$field]) === 1 ) {
-						$opt[$field] = array_pop($opt[$field]);
-						// compute as if it wasn't an array
-					}
-					else {
-						$or_null = false;
-						$in = [];
-						foreach ( $opt[$field] as $value ) {
-							if ( $value === null || $value === false ) {
-								continue;
-							}
-							if ( $value === 'NULL' ) {
-								$or_null = true;
-								continue;
-							}
-							$in[] = $dbh->quote($value);
-						}
-						if ( empty($in) ) {
-							$where[] = sprintf(
-								"t.%s = ''",
-								$field
-							);
-							continue;
-						}
-						$sql = [];
-						if ( ! empty($in) ) {
-							$sql[] = sprintf(
-								't.%s IN (%s)',
-								$field,
-								implode(',',$in)
-							);
-						}
-						if ( $or_null ) {
-							$sql[] = sprintf(
-								't.%s IS NULL',
-								$field
-							);
-						}
-						if ( isset($sql[1]) ) {
-							$where[] = '('.implode(' OR ',$sql).')';
-						}
-						else {
-							$where[] = $sql[0];
-						}
-						continue;
-					}
+
+				switch ( $key ) {
+					case 'eq':
+						static::computeEq($dbh, $field, $opt[$field]['eq'], $where);
+					break;
+					case 'neq':
+						static::computeNeq($dbh, $field, $opt[$field]['neq'], $where);
+					break;
+					case 'lt':
+						static::computeLt($dbh, $field, $opt[$field]['lt'], $where);
+					break;
+					case 'lte':
+						static::computeLte($dbh, $field, $opt[$field]['lte'], $where);
+					break;
+					case 'gt':
+						static::computeGt($dbh, $field, $opt[$field]['gt'], $where);
+					break;
+					case 'gte':
+						static::computeGte($dbh, $field, $opt[$field]['gte'], $where);
+					break;
+					case 'in':
+						static::computeIn($dbh, $field, $opt[$field]['in'], $where, false);
+					break;
+					case 'between':
+						static::computeBetween($dbh, $field, $opt[$field]['between'], $where);
+					break;
+					case 'is':
+						static::computeIs($dbh, $field, $opt[$field]['is'], $where);
+					break;
+					case 'isnt':
+						static::computeIsnt($dbh, $field, $opt[$field]['isnt'], $where);
+					break;
+					default:
+						throw new \InvalidArgumentException('Unknown where operator: '.$key);
 				}
+			} else {
+				static::computeEq($dbh, $field, $opt[$field], $where);
+			}
+		}
+	}
+
+	static protected function computeEq($dbh, $field, $value, array &$where)
+	{
+		if ( $value === 'NULL' || $value === 'NOT NULL') {
+			$where[] = sprintf(
+				't.%s IS %s',
+				$field,
+				$value
+			);
+		}
+		else {
+			$where[] = sprintf(
+				't.%s = %s',
+				$field,
+				$dbh->quote($value)
+			);
+		}
+	}
+
+	static protected function computeNeq($dbh, $field, $value, array &$where)
+	{
+		$where[] = sprintf(
+			't.%s != %s',
+			$field,
+			$dbh->quote($value)
+		);
+	}
+
+	static protected function computeLt($dbh, $field, $value, array &$where)
+	{
+		$where[] = sprintf(
+			't.%s < %s',
+			$field,
+			$dbh->quote($value)
+		);
+	}
+
+	static protected function computeLte($dbh, $field, $value, array &$where)
+	{
+		$where[] = sprintf(
+			't.%s <= %s',
+			$field,
+			$dbh->quote($value)
+		);
+	}
+
+	static protected function computeGt($dbh, $field, $value, array &$where)
+	{
+		$where[] = sprintf(
+			't.%s > %s',
+			$field,
+			$dbh->quote($value)
+		);
+	}
+
+	static protected function computeGte($dbh, $field, $value, array &$where)
+	{
+		$where[] = sprintf(
+			't.%s >= %s',
+			$field,
+			$dbh->quote($value)
+		);
+	}
+
+	static protected function computeIs($dbh, $field, $value, array &$where)
+	{
+		if ( $value != 'null' && $value != 'NULL' ) {
+			throw new \InvalidArgumentException('Invalid value for "is" operator');
+		}
+
+		$where[] = sprintf(
+			't.%s IS NULL',
+			$field
+		);
+	}
+
+	static protected function computeIsnt($dbh, $field, $value, array &$where)
+	{
+		if ( $value != 'null' && $value != 'NULL' ) {
+			throw new \InvalidArgumentException('Invalid value for "isnt" operator');
+		}
+
+		$where[] = sprintf(
+			't.%s IS NOT NULL',
+			$field
+		);
+	}
+
+	static protected function computeBetween($dbh, $field, $value, array &$where)
+	{
+		if ( ! is_array($value) || count($value) != 2 || ! array_key_exists(0,$value) || ! array_key_exists(1,$value) ) {
+			throw new \InvalidArgumentException('Between clause array must have exactly 2 rows');
+		}
+		list($min, $max) = $value;
+		if ( $min !== null && $max !== null ) {
+			$where[] = sprintf(
+				't.%s BETWEEN %s AND %s',
+				$field,
+				$dbh->quote($min),
+				$dbh->quote($max)
+			);
+		}
+		elseif ( $min !== null ) {
+			$where[] = sprintf(
+				't.%s >= %s',
+				$field,
+				$dbh->quote($min)
+			);
+		}
+		elseif ( $max !== null ) {
+			$where[] = sprintf(
+				't.%s <= %s',
+				$field,
+				$dbh->quote($max)
+			);
+		}
+		else {
+			// max AND min are null, nothing to do
+		}
+	}
+
+	static protected function computeIn($dbh, $field, $value, array &$where, $reduce_to_equal = false)
+	{
+		if ( ! is_array($value) ) {
+			$value = explode(',',$value);
+		}
+
+		if ( empty($value) ) {
+			// empty array produces empty SQL clause
+			$where[] = sprintf(
+				"t.%s = ''",
+				$field
+			);
+		} elseif ( sizeof($value) === 1 && $reduce_to_equal ) {
+			// compute as an equal
+			static::computeEq($dbh, $field, array_pop($value), $where);
+		} else {
+			$or_null = false;
+			$in = [];
+			foreach ( $value as $v ) {
+				if ( $v === null || $v === false ) {
+					continue;
+				}
+				if ( $v === 'NULL' ) {
+					$or_null = true;
+					continue;
+				}
+				$in[] = $dbh->quote($v);
 			}
 
-			if ( $opt[$field] === 'NULL' || $opt[$field] === 'NOT NULL') {
+			if ( empty($in) ) {
 				$where[] = sprintf(
-					't.%s IS %s',
+					"t.%s = ''",
+					$field
+				);
+				return;
+			}
+
+			$sql = [];
+			if ( ! empty($in) ) {
+				$sql[] = sprintf(
+					't.%s IN (%s)',
 					$field,
-					$opt[$field]
+					implode(',',$in)
 				);
 			}
-			else {
-				$where[] = sprintf(
-					't.%s = %s',
-					$field,
-					$dbh->quote($opt[$field])
+
+			if ( $or_null ) {
+				$sql[] = sprintf(
+					't.%s IS NULL',
+					$field
 				);
+			}
+
+			if ( isset($sql[1]) ) {
+				$where[] = '('.implode(' OR ',$sql).')';
+			} else {
+				$where[] = $sql[0];
 			}
 		}
 	}
