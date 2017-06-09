@@ -203,4 +203,16 @@ abstract class RestResource
 	 * Format an entity. Implement in the child class.
 	 */
 	abstract public function formatEntity($entity);
+
+	/**
+	 * Helper
+	 */
+	public function formatDate($date)
+	{
+		if ( ! $date ) {
+			return null;
+		}
+
+		return date_create($date)->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z');
+	}
 }
