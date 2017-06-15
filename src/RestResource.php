@@ -184,10 +184,6 @@ abstract class RestResource
 	 */
 	public function formatCollection($collection)
 	{
-		if ( $collection === null ) {
-			return [];
-		}
-
 		if ( ! is_array($collection) ) {
 			throw new \InvalidArgumentException('Collection must be an array (or null)');
 		}
@@ -198,10 +194,13 @@ abstract class RestResource
 			'per_page' =>  $this->model_filters['pager']->getPerPage(),
 			'total' =>  $this->model_filters['pager']->getTotal(),
 			'nb_pages' =>  $this->model_filters['pager']->getNbPages(),
+			'data' => []
 		];
 
-		foreach ( $collection as $entity ) {
-			$results['data'][] = $this->formatEntity($entity);
+		if ( $collection !== null ) {
+			foreach ( $collection as $entity ) {
+				$results['data'][] = $this->formatEntity($entity);
+			}
 		}
 
 		return $results;
