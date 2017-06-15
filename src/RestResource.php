@@ -184,7 +184,7 @@ abstract class RestResource
 	 */
 	public function formatCollection($collection)
 	{
-		if ( ! is_array($collection) ) {
+		if ( $collection !== null && ! is_array($collection) ) {
 			throw new \InvalidArgumentException('Collection must be an array (or null)');
 		}
 
