@@ -474,7 +474,10 @@ class TableModel extends Model
 
 	static protected function computeBetween($dbh, $field, $value, array &$where)
 	{
-		if ( ! is_array($value) || count($value) != 2 || ! array_key_exists(0,$value) || ! array_key_exists(1,$value) ) {
+		if ( ! is_array($value) ) {
+			$value = explode(',',$value);
+		}
+		if ( count($value) != 2 || ! array_key_exists(0,$value) || ! array_key_exists(1,$value) ) {
 			throw new \InvalidArgumentException('Between clause array must have exactly 2 rows');
 		}
 		list($min, $max) = $value;
