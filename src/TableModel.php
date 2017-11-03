@@ -107,7 +107,9 @@ class TableModel extends Model
 	 */
 	static public function getCount(array $opt = array())
 	{
-		$opt = static::mergeOptions(static::getQueryOptions(), $opt);
+		$opt = static::mergeOptions(array_merge([
+			'count' => '*'
+		], static::getQueryOptions()), $opt);
 
 		$dbh = Database::get();
 
@@ -123,10 +125,11 @@ class TableModel extends Model
 		$table_name = static::getTableName();
 
 		static::$last_select_query = sprintf(
-			'SELECT COUNT(*)
+			'SELECT COUNT(%s)
 			FROM %s t
 			%s
 			%s',
+			$opt['count'],
 			$table_name,
 			$join,
 			$where ? 'WHERE '.$where : ''
