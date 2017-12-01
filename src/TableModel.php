@@ -241,7 +241,9 @@ class TableModel extends Model
 	 */
 	static public function getBy(array $opt = array())
 	{
-		$opt = static::mergeOptions(static::getQueryOptions(), $opt);
+		$opt = static::mergeOptions(array_merge([
+			'group_by' => null
+		], static::getQueryOptions()), $opt);
 
 		$dbh = Database::get();
 
@@ -263,11 +265,13 @@ class TableModel extends Model
 			'SELECT %s
 			FROM %s t
 			%s
-			WHERE %s',
+			WHERE %s
+			%s',
 			$select,
 			static::getTableName(),
 			$join,
-			$where
+			$where,
+			$opt['group_by'] ? 'GROUP BY '.$opt['group_by'] : ''
 		);
 
 		$obj = $dbh->query(static::$last_select_query)->fetch(\PDO::FETCH_ASSOC);
