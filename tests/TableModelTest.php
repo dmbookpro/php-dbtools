@@ -344,6 +344,9 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 			['2016-06-01', '2016-06-01 00:00:00'],
 			['2016-06-01 12:42:10', '2016-06-01 12:42:10'],
 			[new DateTime('2016-06-01'), '2016-06-01 00:00:00'],
+
+			['2016-06-01T12:42:10Z', '2016-06-01 15:42:10'],
+			['2016-06-01T12:42:10+02:00', '2016-06-01 13:42:10']
 		];
 	}
 
@@ -352,7 +355,7 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testParseDate($input, $datetime)
 	{
-		$this->assertEquals($datetime, TableModel::parseDate($input)->format('Y-m-d H:i:s'));
+		$this->assertEquals($datetime, TableModel::parseDate($input)->setTimeZone(new DateTimeZone('Europe/Helsinki'))->format('Y-m-d H:i:s'));
 	}
 
 	public function invalidDates()
@@ -373,5 +376,38 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 	public function testParseDateInvalid($input)
 	{
 		TableModel::parseDate($input);
+	}
+
+	/**
+	 * @dataProvider validDates
+	 */
+	public function testConvertToSQLDate($input, $sql_datetime)
+	{
+		$opt = [];
+
+		$method = new ReflectionMethod(
+			'DbTools\TableModel', 'convertToSqlDate'
+		);
+		$method->setAccessible(true);
+
+		$opt['created_at'] = $input;
+		$method->invokeArgs(null, [&$opt, ['created_at']]);
+		$this->assertEquals($sql_datetime, $opt['created_at']);
+
+		$opt['created_at'] =  ['eq' => $input];
+		$method->invokeArgs(null, [&$opt, ['created_at']]);
+		$this->assertEquals(['eq' => $sql_datetime], $opt['created_at']);
+
+		$opt['created_at'] =  ['gt' => $input];
+		$method->invokeArgs(null, [&$opt, ['created_at']]);
+		$this->assertEquals(['gt' => $sql_datetime], $opt['created_at']);
+
+		$opt['created_at'] =  ['between' => [$input, $input]];
+		$method->invokeArgs(null, [&$opt, ['created_at']]);
+		$this->assertEquals(['between' => [$sql_datetime, $sql_datetime]], $opt['created_at']);
+
+		$opt['created_at'] =  ['in' => $input];
+		$method->invokeArgs(null, [&$opt, ['created_at']]);
+		$this->assertEquals(['in' => [$sql_datetime]], $opt['created_at']);
 	}
 }

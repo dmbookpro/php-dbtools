@@ -617,6 +617,59 @@ class TableModel extends Model
 	}
 
 	/**
+	 * Helper function to convert values in the $opt array into valid SQL date
+	 *
+	 * Date values can be various format (DateTime objects, or ISO8601 dates) which
+	 * are not necessarily compatible with SQL, so they have to be converted before
+	 * being used in a query.
+	 */
+	static protected function convertToSQLDate(array &$opt, $fields, $format = 'Y-m-d H:i:s', $timezone = null)
+	{
+		// all dates must be set to the same timezone as the connection
+		if ( ! $timezone ) {
+			// XXX here we assume that the current php timezone is the timezone of the MySQL connection
+			// This is a BIG assumption - it's not necessarily the case.
+			$timezone = new \DateTimeZone(date_default_timezone_get());
+		}
+
+		foreach ( $fields as $field ) {
+			if ( ! isset($opt[$field]) || $opt[$field] === false || $opt[$field] === null ) {
+				continue;
+			}
+
+			if ( is_array($opt[$field]) ) {
+				$key = key($opt[$field]);
+				if ( $key === 0 || $key === null ) {
+					// simply a list of dates (will be computed as a 'in')
+					$opt[$field] = array_map(function($date) use($timezone, $format) { 
+						return static::parseDate($date)->setTimezone($timezone)->format($format);
+					}, $opt[$field]);
+				} else {
+					switch ( $key ) {
+						case 'in':
+						case 'between':
+							if ( ! is_array($opt[$field][$key]) ) {
+								if ( is_string($opt[$field][$key]) ) {
+									$opt[$field][$key] = explode(',',$opt[$field][$key]);
+								} else {
+									$opt[$field][$key] = [$opt[$field][$key]];
+								}
+							}
+							$opt[$field][$key] = array_map(function($date) use($timezone, $format) { 
+								return static::parseDate($date)->setTimezone($timezone)->format($format);
+							}, $opt[$field][$key]);
+						break;
+						default:
+							$opt[$field][$key] = static::parseDate($opt[$field][$key])->setTimezone($timezone)->format($format);
+					}
+				}
+			} else {
+				$opt[$field] = static::parseDate($opt[$field])->setTimezone($timezone)->format($format);
+			}
+		}
+	}
+
+	/**
 	 * Decode a JSON-encoded array/object into a assoc array.
 	 *
 	 * @param $json (string) The JSON-encoded array
