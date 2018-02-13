@@ -659,6 +659,10 @@ class TableModel extends Model
 								return static::parseDate($date)->setTimezone($timezone)->format($format);
 							}, $opt[$field][$key]);
 						break;
+						case 'is':
+						case 'isnt';
+							// is null or is not null
+							break;
 						default:
 							$opt[$field][$key] = static::parseDate($opt[$field][$key])->setTimezone($timezone)->format($format);
 					}
