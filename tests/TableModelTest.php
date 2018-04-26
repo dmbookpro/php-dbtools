@@ -1,7 +1,14 @@
 <?php
 
+namespace DbTools\Tests;
+
 use DbTools\TableModel;
 use DbTools\Database;
+use ReflectionMethod;
+use DateTime;
+use DateTimeZone;
+use stdClass;
+use PHPUnit\Framework\TestCase;
 
 class ConcreteTableModel extends TableModel
 {
@@ -42,7 +49,7 @@ class ConcreteTableModel extends TableModel
 	}
 }
 
-class TableModelTest extends PHPUnit_Framework_TestCase
+class TableModelTest extends TestCase
 {
 	static protected $id;
 
@@ -114,7 +121,7 @@ class TableModelTest extends PHPUnit_Framework_TestCase
 	public function testGetBy()
 	{
 		$obj = ConcreteTableModel::getById(self::$id);
-		$this->assertInstanceOf('ConcreteTableModel', $obj);
+		$this->assertInstanceOf(ConcreteTableModel::class, $obj);
 		$this->assertNotEmpty(ConcreteTableModel::getLastSelectQuery());
 	}
 

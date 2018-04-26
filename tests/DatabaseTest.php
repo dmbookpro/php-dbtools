@@ -1,8 +1,12 @@
 <?php
 
-use DbTools\Database;
+namespace DbTools\Tests;
 
-class DatabaseTest extends PHPUnit_Framework_TestCase
+use DbTools\Database;
+use PDO;
+use PHPUnit\Framework\TestCase;
+
+class DatabaseTest extends TestCase
 {
 	public function testSetConfig()
 	{

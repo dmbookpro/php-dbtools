@@ -1,8 +1,12 @@
 <?php
 
-use DbTools\Model;
+namespace DbTools\Tests;
 
-class ModelTest extends PHPUnit_Framework_TestCase
+use DbTools\Model;
+use stdClass;
+use PHPUnit\Framework\TestCase;
+
+class ModelTest extends TestCase
 {
 	public function testConstructorAndGet()
 	{

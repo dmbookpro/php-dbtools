@@ -1,9 +1,13 @@
 <?php
 
+namespace DbTools\Tests;
+
 use DbTools\Pager;
 use DbTools\Database;
+use stdClass;
+use PHPUnit\Framework\TestCase;
 
-class PagerTest extends PHPUnit_Framework_TestCase
+class PagerTest extends TestCase
 {
 
 	public function invalidPageValues()
