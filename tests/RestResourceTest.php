@@ -1,6 +1,9 @@
 <?php
 
+namespace DbTools\Tests;
+
 use DbTools\RestResource;
+use PHPUnit\Framework\TestCase;
 
 class TestRestResource extends RestResource
 {
@@ -24,7 +27,7 @@ class TestRestResource extends RestResource
 	}
 }
 
-class RestResourceTest extends PHPUnit_Framework_TestCase
+class RestResourceTest extends TestCase
 {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,11 +74,10 @@ class RestResourceTest extends PHPUnit_Framework_TestCase
 		$test->processRequest([
 			'sort' => $sort
 		]);
-		if ( $sql ) {
-			$opt = $test->getModelFilters();
-			$this->assertArrayHasKey('order_by', $opt);
-			$this->assertEquals($sql, $opt['order_by']);
-		}
+		
+		$opt = $test->getModelFilters();
+		$this->assertArrayHasKey('order_by', $opt);
+		$this->assertEquals($sql, $opt['order_by']);
 	}
 
 	/**
